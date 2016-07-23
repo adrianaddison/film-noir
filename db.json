@@ -1,0 +1,19 @@
+{
+  "users": [
+    {
+      "id": "46b8f19d-2702-49e9-854b-2a8ee4a75bbe",
+      "username": "admin",
+      "password": "admin"
+    },
+    {
+      "id": "91c322e8-510b-469e-823e-e2375cfa0d69",
+      "username": "adrian",
+      "password": "addison"
+    },
+    {
+      "id": "8807f17b-7761-4d5d-abb2-9d6dd3375bcb",
+      "username": "diego",
+      "password": "addison"
+    }
+  ]
+}
