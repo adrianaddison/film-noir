@@ -10,7 +10,11 @@ module.exports = Backbone.Router.extend({
         'login': 'login',
         'logout': 'logout',
         'register': 'register',
-        'home': 'home'
+        'home': 'home',
+        // 'search/:query': 'search',
+        // 'movie/:id': 'movieDetails',
+        // 'tv/:id': 'tvDetails',
+        // 'person/:id': 'personDetails'
     },
 
     login: function () {

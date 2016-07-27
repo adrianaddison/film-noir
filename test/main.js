@@ -13570,342 +13570,6 @@ module.exports = {
 },{}],5:[function(require,module,exports){
 var Backbone = require('backbone');
 
-var auth = require('../Auth/authController');
-var dashboard = require('../Dashboard/dashboardController');
-
-module.exports = Backbone.Router.extend({
-
-    routes: {
-        '': 'home',
-        'login': 'login',
-        'logout': 'logout',
-        'register': 'register',
-        'home': 'home',
-        // 'search/:query': 'search',
-        // 'movie/:id': 'movieDetails',
-        // 'tv/:id': 'tvDetails',
-        // 'person/:id': 'personDetails'
-    },
-
-    login: function () {
-        auth.showLogin();
-    },
-
-    logout: function () {
-        auth.logout();
-    },
-
-    register: function () {
-        auth.showRegister();
-    },
-
-    home: function () {
-        auth.check();
-        dashboard.showDashboard();
-    }
-
-});
-},{"../Auth/authController":11,"../Dashboard/dashboardController":13,"backbone":1}],6:[function(require,module,exports){
-var Backbone = require('backbone');
-
-module.exports = Backbone.View.extend({
-
-    tagName: 'main',
-
-    className: 'app',
-
-    initialize: function () {
-        this.pageViews = [];
-    },
-
-    render: function () {
-        this.$el.html(this.template());
-    },
-
-    template: function () {
-        return `
-            <div class="search-region"></div>
-            <div class="page-region"></div>
-        `;
-    },
-
-    show: function () {
-        var _this = this;
-        var views = Array.prototype.slice.call(arguments);
-
-        this.pageViews.forEach(function (view) {
-            view.remove();
-        });
-        
-        this.pageViews = views;
-
-        this.pageViews.forEach(function (view) {
-            view.render();
-            _this.$('.page-region').append(view.el);
-        });
-    }
-
-});
-},{"backbone":1}],7:[function(require,module,exports){
-var AppView = require('./AppView');
-
-module.exports = {
-
-    appView: new AppView(),
-
-    showPage: function () {
-    	// We use apply here to call the show function
-    	// with any arguments passed to appController.showPage
-        this.appView.show.apply(this.appView, arguments);
-    }
-
-};
-},{"./AppView":6}],8:[function(require,module,exports){
-var Backbone = require('backbone');
-
-var auth = require('./authController');
-
-module.exports = Backbone.View.extend({
-
-    className: 'login',
-
-    events: {
-        'click .login-button': 'onLoginClick'
-    },
-
-    render: function () {
-        this.$el.html(this.template());
-    },
-
-    template: function () {
-        return `
-            <h3>Login</h3>
-            <label for="username">Username</label>
-            <input id="username" type="text" name="username">
-            <label for="password">Password</label>
-            <input id="password" type="text" name="password">
-            <button class="login-button">Login</button>
-            <a href="#/register">Register</a>
-        `;
-    },
-
-    onLoginClick: function () {
-        this.trigger('submit', {
-            username: this.$('#username').val(),
-            password: this.$('#password').val()
-        });
-    }
-
-});
-},{"./authController":11,"backbone":1}],9:[function(require,module,exports){
-var Backbone = require('backbone');
-
-var auth = require('./authController');
-
-module.exports = Backbone.View.extend({
-
-    className: 'login',
-
-    events: {
-        'click .register-button': 'onRegisterClick'
-    },
-
-    render: function () {
-        this.$el.html(this.template());
-    },
-
-    template: function () {
-        return `
-            <h3>Register</h3>
-            <label for="username">Username</label>
-            <input id="username" type="text" name="username">
-            <label for="password">Password</label>
-            <input id="password" type="text" name="password">
-            <button class="register-button">Register</button>
-        `;
-    },
-
-    onRegisterClick: function () {
-        this.trigger('submit', {
-            username: this.$('#username').val(),
-            password: this.$('#password').val()
-        });
-    }
-
-});
-},{"./authController":11,"backbone":1}],10:[function(require,module,exports){
-var Backbone = require('backbone');
-
-module.exports = Backbone.Model.extend({
-
-    urlRoot: '/users',
-
-    defaults: {
-        username: ''
-    },
-
-    check: function (success, error) {
-        this.fetch({
-            url: '/auth/check',
-            success: success,
-            error: error
-        });
-    }
-
-});
-},{"backbone":1}],11:[function(require,module,exports){
-var $ = require('jquery');
-var Backbone = require('backbone');
-
-var app = require('../App/appController');
-var LoginView = require('./LoginView');
-var RegisterView = require('./RegisterView');
-var UserModel = require('./UserModel');
-
-module.exports = {
-
-    userModel: new UserModel(),
-
-    check: function () {
-        var _this = this;
-
-        this.userModel.check(function success() {
-
-        }, function error() {
-            Backbone.history.navigate('login', { trigger: true });
-        });
-    },
-
-    login: function (credentials) {
-        $.ajax('/auth/login', {
-            method: 'POST',
-            data: credentials,
-            success: function () {
-                Backbone.history.navigate('home', { trigger: true });
-            },
-            error: function () {
-                throw new Error('There was an error logging in.');
-            }
-        });
-    },
-
-    logout: function () {
-        $.ajax('/auth/login', {
-            method: 'DELETE',
-            success: function () {
-                Backbone.history.navigate('login', { trigger: true });
-            },
-            error: function () {
-                throw new Error('There was an error logging out.');
-            }
-        });
-    },
-
-    register: function (options) {
-        var model = new UserModel(options);
-
-        model.save(null, {
-            success: function () {
-                Backbone.history.navigate('login', { trigger: true });
-            }
-        });
-    },
-
-    showLogin: function () {
-        var _this = this;
-        var loginView = new LoginView();
-
-        app.showPage(loginView);
-
-        loginView.on('submit', function (options) {
-            _this.login(options);
-        });
-    },
-
-    showRegister: function () {
-        var _this = this;
-        var registerView = new RegisterView();
-
-        app.showPage(registerView);
-
-        registerView.on('submit', function (options) {
-            _this.register(options);
-        });
-    }
-
-};
-},{"../App/appController":7,"./LoginView":8,"./RegisterView":9,"./UserModel":10,"backbone":1,"jquery":2}],12:[function(require,module,exports){
-var Backbone = require('backbone');
-
-var MovieNowPlayingView = require('../Movie/MovieNowPlayingView');
-
-var MovieDetailView = require('../Movie/MovieDetailView');
-
-module.exports = Backbone.View.extend({
-
-    initialize: function (options) {
-        // Grab the MovieCollection
-        this.movieNowPlaying = options.movieNowPlaying;
-        // Create a new MovieNowPlayingView with the collection
-        this.movieNowPlayingView = new MovieNowPlayingView({
-            collection: this.movieNowPlaying
-        });
-
-        // this.movieDetail = options.movieDetail;
-        // this.movieDetailView = new MovieDetailView({
-        //     collection: this.movieDetail
-        // });
-        this.user = options.user;
-        this.listenTo(this.user, 'change', this.render);
-    },
-
-    render: function () {
-        this.$el.html(this.template(this.user.toJSON()));
-        this.movieNowPlayingView.render();
-        this.$('.now-playing-region').append(this.movieNowPlayingView.$el);
-        // this.movieDetailView.render();
-        // this.$('.movie-detail').append(this.movieDetailView.$el);
-    },
-
-    template: function (data) {
-        return `
-            <h3>Dashboard</h3>
-            Welcome, ${data.username}.
-            <a href="#/logout">Logout</a>
-            <div class="now-playing-region"></div>
-        `;
-    }
-
-});
-},{"../Movie/MovieDetailView":15,"../Movie/MovieNowPlayingView":17,"backbone":1}],13:[function(require,module,exports){
-var Backbone = require('backbone');
-var DashboardView = require('./DashboardView');
-var MovieCollection = require('../Movie/MovieCollection');
-
-var api = require('../API/api');
-var app = require('../App/appController');
-var auth = require('../Auth/authController');
-
-module.exports = {
-
-    showDashboard: function () {
-		var movieNowPlaying = new MovieCollection();
-
-		movieNowPlaying.fetch({
-			url: api.url('movie/now_playing')
-		});
-
-        var dashboardView = new DashboardView({
-            user: auth.userModel,
-            movieNowPlaying: movieNowPlaying
-        });
-        app.showPage(dashboardView);
-    }
-
-};
-},{"../API/api":4,"../App/appController":7,"../Auth/authController":11,"../Movie/MovieCollection":14,"./DashboardView":12,"backbone":1}],14:[function(require,module,exports){
-var Backbone = require('backbone');
-
 var api = require('../API/api');
 
 var MovieModel = require('./MovieModel');
@@ -13922,51 +13586,7 @@ var MovieCollection = Backbone.Collection.extend({
 });
 
 module.exports = MovieCollection;
-},{"../API/api":4,"./MovieModel":16,"backbone":1}],15:[function(require,module,exports){
-var $ = require('jquery');
-var Backbone = require('backbone');
-
-var PersonListView = require('../Person/PersonListView');
-
-var MovieDetailView = Backbone.View.extend({
-	
-	className: 'movie-detail',
-
-	initialize: function (options) {
-		this.personListView = new PersonListView({
-			collection: this.model.credits
-		});
-		this.onSelect = options.onSelect;
-		this.render = this.render.bind(this);
-	},
-
-	render: function () {
-		var _this = this.model
-		this.$el.html(this.template({
-			title: this.model.get('title'),
-			overview: this.model.get('overview'),
-			release_date: this.model.get('release_date')
-		}));
-		this.personListView.render();
-		this.$('.credits-region').append(this.personListView.$el);
-	},
-
-	template: function (data) {
-		return `
-			<div class=""></div>
-			<h2 class="movie-detal-title">${data.title}</h2>
-			<p>Overview: ${data.overview}</p>
-			<span>Release Date: ${data.release_date}</span>
-			<div class="credits-region"></div>
-		`;
-	}
-
-});
-
-module.exports = MovieDetailView;
-
-
-},{"../Person/PersonListView":20,"backbone":1,"jquery":2}],16:[function(require,module,exports){
+},{"../API/api":4,"./MovieModel":6,"backbone":1}],6:[function(require,module,exports){
 var Backbone = require('backbone');
 
 var api = require('../API/api');
@@ -14018,42 +13638,7 @@ var MovieModel = Backbone.Model.extend({
 
 
 module.exports = MovieModel;
-},{"../API/api":4,"../Person/PersonCollection":18,"backbone":1}],17:[function(require,module,exports){
-var $ = require('jquery');
-var Backbone = require('backbone');
-
-var MovieNowPlayingView = Backbone.View.extend({
-
-	className: 'now_playing',
-
-	initialize: function () {
-		this.collection.on('update', this.render.bind(this));
-	},
-
-	render: function () {
-		var _this = this;
-
-		var images = this.collection.map(function (model) {
-			return $('<img>', {
-				src: model.getMoviePoster()
-			});
-		});
-
-		images.forEach(function (image) {
-			_this.$el.append(image);
-		});
-	},
-
-	template: function (data) {
-
-	}
-
-});
-
-module.exports = MovieNowPlayingView;
-
-
-},{"backbone":1,"jquery":2}],18:[function(require,module,exports){
+},{"../API/api":4,"../Person/PersonCollection":7,"backbone":1}],7:[function(require,module,exports){
 var Backbone = require('backbone');
 
 var api = require('../API/api');
@@ -14072,76 +13657,7 @@ var PersonCollection = Backbone.Collection.extend({
 });
 
 module.exports = PersonCollection;
-},{"../API/api":4,"./PersonModel":21,"backbone":1}],19:[function(require,module,exports){
-var Backbone = require('backbone');
-
-var PersonListItemView = Backbone.View.extend({
-
-	className: 'person-item',
-
-	tagName: 'li',
-
-	events: {
-		'click': 'handleClick'
-	}, 
-
-	initialize: function () {
-		this.model.on('sync', this.render.bind(this));
-	},
-
-	render: function () {
-		this.$el.html(this.template({
-			title: this.model.get('title'),
-			profile: this.model.getProfile()
-		}));
-	},
-
-	template: function (data) {
-		return `
-			<img class="person-profile" src="${data.profile}">
-			<div>${data.title}</div>
-		`;
-	},
-
-	handleClick: function () {
-		Backbone.history.navigate('person/' + this.model.get('id'), { trigger: true });
-	}
-});
-
-module.exports = PersonListItemView;
-},{"backbone":1}],20:[function(require,module,exports){
-var Backbone = require('backbone');
-
-var PersonListItemView = require('./PersonListItemView');
-
-var PersonListView = Backbone.View.extend({
-
-	tagName: 'ul',
-
-	className: 'now-playing-list',
-
-	initialize: function () {
-		this.collection.on('update', this.render.bind(this));
-	},
-
-	render: function () {
-		var _this = this;
-
-		this.childViews = this.collection.map(function (model) {
-			var view = new PersonListItemView({ model: model });
-			return view;
-		});
-
-		this.childViews.forEach(function (view) {
-			view.render();
-			_this.$el.append(view.$el);
-		});
-   }
-
-});
-
-module.exports = PersonListView;
-},{"./PersonListItemView":19,"backbone":1}],21:[function(require,module,exports){
+},{"../API/api":4,"./PersonModel":8,"backbone":1}],8:[function(require,module,exports){
 var Backbone = require('backbone');
 
 var api = require('../API/api');
@@ -14179,18 +13695,82 @@ var PersonModel = Backbone.Model.extend({
 
 
 module.exports = PersonModel;
-},{"../API/api":4,"../Movie/MovieCollection":14,"backbone":1}],22:[function(require,module,exports){
-var $ = require('jquery');
+},{"../API/api":4,"../Movie/MovieCollection":5,"backbone":1}],9:[function(require,module,exports){
 var Backbone = require('backbone');
 
-var app = require('./components/App/appController');
-var AppRouter = require('./components/App/AppRouter');
+var api = require('../API/api');
 
-var router = new AppRouter();
+var TVModel = Backbone.Model.extend({
+	
+	urlRoot: function () {
+        return api.url('tv');
+    }
 
-app.appView.render();
+});
 
-$(document.body).append(app.appView.$el);
 
-Backbone.history.start();
-},{"./components/App/AppRouter":5,"./components/App/appController":7,"backbone":1,"jquery":2}]},{},[22]);
+module.exports = TVModel;
+},{"../API/api":4,"backbone":1}],10:[function(require,module,exports){
+var MovieModel = require('../../../src/js/components/Movie/MovieModel');
+
+// describe() describes a suite of test acases (aka unit test)
+describe('MovieModel', function () {
+
+	// ensure each test case uses a new model
+	beforeEach(function () {
+		this.model = new MovieModel();
+	});
+
+	afterEach(function () {
+		this.model = null;
+	});
+
+	it ('the value of the `urlRoot` property is api.url(`movie`)', function () {
+		expect(this.model.urlRoot).to.equal(api.url('movie'));
+	});
+});
+},{"../../../src/js/components/Movie/MovieModel":6}],11:[function(require,module,exports){
+var PersonModel = require('../../../src/js/components/Person/PersonModel');
+
+// describe() describes a suite of test acases (aka unit test)
+describe('PersonModel', function () {
+
+	// ensure each test case uses a new model
+	beforeEach(function () {
+		this.model = new PersonModel();
+	});
+
+	afterEach(function () {
+		this.model = null;
+	});
+
+});
+},{"../../../src/js/components/Person/PersonModel":8}],12:[function(require,module,exports){
+var TVModel = require('../../../src/js/components/TV/TVModel');
+
+// describe() describes a suite of test acases (aka unit test)
+describe('TVModel', function () {
+
+	// ensure each test case uses a new model
+	beforeEach(function () {
+		this.model = new TVModel();
+	});
+
+	afterEach(function () {
+		this.model = null;
+	});
+});
+},{"../../../src/js/components/TV/TVModel":9}],13:[function(require,module,exports){
+// Use the expect version of chai assertions - http://chaijs.com/api/bdd
+window.expect = chai.expect;
+
+mocha.setup('bdd');
+
+require('./Movie/MovieModel.test');
+
+require('./Person/PersonModel.test');
+
+require('./TV/TVModel.test');
+
+mocha.run();
+},{"./Movie/MovieModel.test":10,"./Person/PersonModel.test":11,"./TV/TVModel.test":12}]},{},[13]);

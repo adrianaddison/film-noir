@@ -7,7 +7,7 @@ module.exports = Backbone.View.extend({
     className: 'app',
 
     initialize: function () {
-        this.pageView = null;
+        this.pageViews = [];
     },
 
     render: function () {
@@ -15,19 +15,26 @@ module.exports = Backbone.View.extend({
     },
 
     template: function () {
-        return `<div class="page-region"></div>`;
+        return `
+            <div class="search-region"></div>
+            <div class="page-region"></div>
+        `;
     },
 
-    show: function (view) {
-        if (this.pageView) {
-            this.pageView.remove();
-        }
-        
-        this.pageView = view;
+    show: function () {
+        var _this = this;
+        var views = Array.prototype.slice.call(arguments);
 
-        view.render();
+        this.pageViews.forEach(function (view) {
+            view.remove();
+        });
         
-        this.$('.page-region').append(view.el);
+        this.pageViews = views;
+
+        this.pageViews.forEach(function (view) {
+            view.render();
+            _this.$('.page-region').append(view.el);
+        });
     }
 
 });
