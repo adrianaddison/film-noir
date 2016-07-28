@@ -16,7 +16,7 @@ var PersonListItemView = Backbone.View.extend({
 
 	render: function () {
 		this.$el.html(this.template({
-			title: this.model.get('title'),
+			name: this.model.get('name'),
 			profile: this.model.getProfile()
 		}));
 	},
@@ -24,7 +24,7 @@ var PersonListItemView = Backbone.View.extend({
 	template: function (data) {
 		return `
 			<img class="person-profile" src="${data.profile}">
-			<div>${data.title}</div>
+			<div>${data.name}</div>
 		`;
 	},
 

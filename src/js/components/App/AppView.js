@@ -16,6 +16,7 @@ module.exports = Backbone.View.extend({
 
     template: function () {
         return `
+            <div class="header-region"></div>
             <div class="search-region"></div>
             <div class="page-region"></div>
         `;

@@ -1,9 +1,11 @@
 var $ = require('jquery');
 var Backbone = require('backbone');
 
+var MovieListItemView = require('./MovieListItemView');
+
 var MovieNowPlayingView = Backbone.View.extend({
 
-	className: 'now_playing',
+	className: 'now-playing',
 
 	initialize: function () {
 		this.collection.on('update', this.render.bind(this));
@@ -12,19 +14,16 @@ var MovieNowPlayingView = Backbone.View.extend({
 	render: function () {
 		var _this = this;
 
-		var images = this.collection.map(function (model) {
-			return $('<img>', {
-				src: model.getMoviePoster()
+		var views = this.collection.map(function (model) {
+			return new MovieListItemView({
+				model: model
 			});
 		});
 
-		images.forEach(function (image) {
-			_this.$el.append(image);
+		views.forEach(function (view) {
+			view.render();
+			_this.$el.append(view.$el);
 		});
-	},
-
-	template: function (data) {
-
 	}
 
 });

@@ -14,10 +14,6 @@ module.exports = Backbone.View.extend({
             collection: this.movieNowPlaying
         });
 
-        // this.movieDetail = options.movieDetail;
-        // this.movieDetailView = new MovieDetailView({
-        //     collection: this.movieDetail
-        // });
         this.user = options.user;
         this.listenTo(this.user, 'change', this.render);
     },
@@ -26,8 +22,6 @@ module.exports = Backbone.View.extend({
         this.$el.html(this.template(this.user.toJSON()));
         this.movieNowPlayingView.render();
         this.$('.now-playing-region').append(this.movieNowPlayingView.$el);
-        // this.movieDetailView.render();
-        // this.$('.movie-detail').append(this.movieDetailView.$el);
     },
 
     template: function (data) {
