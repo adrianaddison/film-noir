@@ -368,20 +368,20 @@ textarea {
   font: inherit;
   /* 2 */ }
 
-header {
+.header,
+.header-small {
   background-image: url(img/curtain.png);
   background-position: center bottom;
-  height: 410px;
   position: fixed;
   transition: height 200ms ease;
-  text-align: center;
-  width: 100%; }
+  width: 100%;
+  padding: 0 1.25em; }
 
-#logo-large {
-  height: 85px;
-  padding-top: 1.5em; }
+.header {
+  height: 410px;
+  text-align: center; }
 
-header h1 {
+.header h1 {
   padding-top: .4em;
   font-family: 'Ironick NF';
   color: white;
@@ -389,21 +389,31 @@ header h1 {
   font-weight: lighter;
   text-shadow: 2px 2px #111; }
 
-#header-small {
-  background-image: url(img/curtain.png);
-  background-position: center bottom;
-  height: 190px;
-  position: fixed;
-  transition: height 200ms ease;
-  text-align: center;
-  width: 100%; }
+.header-small {
+  height: 190px; }
 
-header.collapsed {
-  height: 200px; }
-
-#logo-small {
+.header-top {
   height: 40px;
-  padding-top: 1em; }
+  line-height: 40px;
+  margin-top: 1em; }
+
+.header-top:after {
+  content: '';
+  clear: both;
+  display: block; }
+
+.header-left,
+.header-right {
+  float: left;
+  width: 50%;
+  height: 100%; }
+
+.logo-large {
+  height: 85px;
+  margin-top: 1em; }
+
+.logo-small {
+  height: 40px; }
 
 main {
   padding-top: 368px; }
@@ -422,70 +432,72 @@ main {
   font-family: 'Ironick NF';
   text-decoration: underline; }
 
-.search {
-  width: 80%;
+.search,
+.search-small {
+  width: 100%;
   position: relative;
-  margin: 0 auto; }
+  margin: 0 auto;
+  height: 50px; }
+
+.search-small {
+  margin-top: 1em; }
+
+.search-icon,
+.search-box {
+  position: absolute;
+  top: 0; }
+
+.search-box {
+  left: 0; }
+
+.search-icon {
+  height: 24px;
+  right: 12px;
+  top: 12px; }
 
 .search-box {
   background-color: #111;
   border: 2px solid #111;
-  height: 44px;
+  border-radius: 6px;
+  height: 50px;
+  padding: 6px;
   width: 100%; }
 
-.search-icon {
-  height: 22px;
-  position: absolute;
-  right: 0;
-  top: 15px; }
-
 .voice {
-  position: relative; }
+  text-align: right;
+  width: 100%;
+  padding-right: 1em; }
 
-#voice-search {
+.voice-text,
+.voice-icon {
+  vertical-align: middle; }
+
+.voice-text {
   color: #D3D3D3;
   font-weight: lighter;
   text-align: right;
-  padding-right: 4.8em;
+  padding-right: 0.5em;
   padding-top: 0;
-  text-decoration: underline; }
+  text-decoration: underline;
+  text-transform: lowercase;
+  font-variant: small-caps; }
 
-#microphone {
-  height: 20px;
-  position: absolute;
-  right: 50px;
-  top: -4px; }
+.voice-icon {
+  height: 20px; }
 
-.search-small {
-  width: 80%;
-  position: relative;
-  margin: 0 auto;
-  padding-top: 8px; }
-
-.search-icon-small {
-  height: 24px;
-  position: absolute;
-  right: 0;
-  top: 22px; }
-
-.voice-small {
-  position: absolute;
-  top: 10px; }
-
-#microphone-small {
-  height: 20px;
-  position: absolute;
-  right: 11px;
-  top: 22px; }
-
-.movie-results {
-  padding-left: 6%;
-  color: #D3D3D3;
-  font-weight: 50px;
-  font-family: 'Ironick NF';
-  text-decoration: underline; }
+*, *:before, *:after {
+  box-sizing: border-box; }
 
 body {
-  background-color: #111; }
+  background-color: #000;
+  background-image: url(img/broken-noise.png);
+  background-size: 600px; }
+
+h3 {
+  padding-left: 10%;
+  color: #D3D3D3;
+  font-family: 'Ironick NF';
+  font-size: 24px;
+  text-decoration: underline; }
 
 /*# sourceMappingURL=main.css.map */
