@@ -2,30 +2,27 @@ var Backbone = require('backbone');
 
 var api = require('../API/api');
 
-var PersonCollection = require('../Person/PersonCollection');
+var PersonModel = require('../Person/PersonModel');
+
+var PersonCreditsCollection = Backbone.Collection.extend({
+    model: PersonModel
+});
 
 var MovieModel = Backbone.Model.extend({
 
     initialize: function () {
         var _this = this;
-        this.credits = new PersonCollection(this.model.get('credits'));
+        this.credits = new PersonCreditsCollection();
         this.on('sync', function () {
             // If the model is fetched, reset the models inside of the credits collection.
-            _this.credits.reset(_this.model.get('credits'));
+            _this.credits.reset(_this.get('credits').cast);
         });
     },
 
-    urlRoot: function () {
-        return api.url('movie');
-    },
+    urlRoot: api.url('movie'),
 
-	parse: function (response) {
-        // If the model belongs to a collection
-        if (this.collection) {
-            // The response has already been parsed
-            return response;
-        }
-        return response.results[0];
+    url: function () {
+        return api.url('movie/' + this.get('id'));
     },
 
     getMoviePoster: function () {
@@ -35,6 +32,8 @@ var MovieModel = Backbone.Model.extend({
         return image;
     },
 
+    // Override the default fetch method to always
+    // append the credits to the response.
     fetch: function (options) {
         options = Object.assign({
             data: {
@@ -42,7 +41,7 @@ var MovieModel = Backbone.Model.extend({
             }
         }, options);
 
-        Backbone.Model.fetch.call(this, options);
+        Backbone.Model.prototype.fetch.call(this, options);
     }
 
 });

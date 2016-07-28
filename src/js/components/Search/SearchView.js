@@ -11,7 +11,8 @@ var SearchView = Backbone.View.extend({
 	className: 'search',
 
 	events: {
-		'click .search-button': 'handleSearchClick'
+		'click .search-button': 'handleSearchClick',
+		'keyup .search-for': 'handleSearchKeyup '
 	},
 
 	initialize: function () {

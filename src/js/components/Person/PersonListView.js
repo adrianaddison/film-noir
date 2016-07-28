@@ -6,10 +6,10 @@ var PersonListView = Backbone.View.extend({
 
 	tagName: 'ul',
 
-	className: 'now-playing-list',
+	className: 'person-list',
 
 	initialize: function () {
-		this.collection.on('update', this.render.bind(this));
+		this.collection.on('reset update', this.render.bind(this));
 	},
 
 	render: function () {

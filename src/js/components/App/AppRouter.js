@@ -2,6 +2,9 @@ var Backbone = require('backbone');
 
 var auth = require('../Auth/authController');
 var dashboard = require('../Dashboard/dashboardController');
+var movie = require('../Movie/movieController');
+var person = require('../Person/personController');
+var tv = require('../TV/tvController');
 
 module.exports = Backbone.Router.extend({
 
@@ -12,9 +15,9 @@ module.exports = Backbone.Router.extend({
         'register': 'register',
         'home': 'home',
         // 'search/:query': 'search',
-        // 'movie/:id': 'movieDetails',
+        'movie/:id': 'movieDetails',
         // 'tv/:id': 'tvDetails',
-        // 'person/:id': 'personDetails'
+        'person/:id': 'personDetails'
     },
 
     login: function () {
@@ -32,6 +35,20 @@ module.exports = Backbone.Router.extend({
     home: function () {
         auth.check();
         dashboard.showDashboard();
-    }
+    },
 
+    movieDetails: function (id) {
+        auth.check();
+        movie.showMovieDetails(id);
+    },
+
+    personDetails: function (id) {
+        auth.check();
+        person.showPersonDetails(id);
+    },
+
+    tvDetails: function (id) {
+        auth.check();
+        tv.showTVDetails(id);
+    }
 });

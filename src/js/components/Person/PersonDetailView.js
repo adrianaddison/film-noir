@@ -19,7 +19,7 @@ var PersonDetailView = Backbone.View.extend({
 		this.$el.html(this.template({
 			name: this.model.get('name'),
 			biography: this.model.get('biography'),
-			profile: this.model.getProfile()
+			profile: this.model.getProfile(),
 		}));
 		this.movieListView.render();
 		this.$('.movie-credits-region').append(this.movieListView.$el);
@@ -28,8 +28,8 @@ var PersonDetailView = Backbone.View.extend({
 	template: function (data) {
 		return `
 			<div class=""></div>
-			<h2 class="person-detal-name">${data.name}</h2>
 			<img src="${data.profile}">
+			<h2 class="person-detal-name">${data.name}</h2>
 			<p>Biography: ${data.biography}</p>
 			<div class="movie-credits-region"></div>
 		`;
