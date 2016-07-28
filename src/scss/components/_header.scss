@@ -1,0 +1,25 @@
+header {
+	background-image: url(img/curtain.png);
+	background-position: center bottom;
+	height: 410px;
+	position: fixed;
+	transition: height 200ms ease;
+	text-align: center;
+	width: 100%
+}
+
+#logo-large {
+	height: 85px;
+	padding-top: 1.5em;
+
+}
+
+header h1 {
+	padding-top: .4em;
+	font-family: 'Ironick NF';
+	color: white;
+	font-size: 35px;
+	font-weight: lighter;
+	text-shadow: 2px 2px $color-black;
+}
+

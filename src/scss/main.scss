@@ -1,0 +1,13 @@
+@import '../../lib/normalize';
+
+@import 'vars';
+@import 'components/header';
+@import 'components/header-small';
+@import 'components/main';
+@import 'components/paragraphs';
+@import 'components/search-home';
+@import 'components/search-small';
+
+body {
+	background-color: $color-black;
+}
