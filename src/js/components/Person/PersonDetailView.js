@@ -34,7 +34,6 @@ var PersonDetailView = Backbone.View.extend({
 			<div class="movie-credits-region"></div>
 		`;
 	}
-
 });
 
 module.exports = PersonDetailView;

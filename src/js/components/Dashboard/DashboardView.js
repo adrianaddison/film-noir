@@ -32,5 +32,4 @@ module.exports = Backbone.View.extend({
             <div class="now-playing-region"></div>
         `;
     }
-
 });

@@ -1,5 +1,7 @@
 var Backbone = require('backbone');
 
+var HeaderView = require('./HeaderView');
+
 module.exports = Backbone.View.extend({
 
     tagName: 'main',
@@ -8,16 +10,18 @@ module.exports = Backbone.View.extend({
 
     initialize: function () {
         this.pageViews = [];
+        this.headerView = new HeaderView();
     },
 
     render: function () {
         this.$el.html(this.template());
+        this.headerView.render();
+        this.$('.header-region').append(this.headerView.$el);
     },
 
     template: function () {
         return `
             <div class="header-region"></div>
-            <div class="search-region"></div>
             <div class="page-region"></div>
         `;
     },

@@ -13639,10 +13639,10 @@ var PersonModel = Backbone.Model.extend({
 
 	initialize: function () {
 		var _this = this;
-		this.movieCredits = new MovieCreditsCollection(this.get('movie_credits'));
+		this.movieCredits = new MovieCreditsCollection(this.get('movie_credits,tv_credits'));
         this.on('sync', function () {
             // If the model is fetched, reset the models inside of the movie credits collection.
-            _this.movieCredits.reset(_this.get('movie_credits'));
+            _this.movieCredits.reset(_this.get('movie_credits,tv_credits'));
         });
 	},
 
@@ -13653,7 +13653,7 @@ var PersonModel = Backbone.Model.extend({
 	fetch: function (options) {
 		options = Object.assign({
 			data: {
-				append_to_response: 'movie_credits'
+				append_to_response: 'movie_credits,tv_credits'
 			}
 		}, options);
 

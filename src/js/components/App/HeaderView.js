@@ -1,23 +1,28 @@
 var Backbone = require('backbone');
 
+var SearchView = require('../Search/SearchView');
+
 var HeaderView = Backbone.View.extend({
 
-	className: 'header-region',
+	tagName: 'header',
+
+	className: 'header',
 
 	initialize: function () {
-		this.model.on('sync', this.render.bind(this));
+		this.searchView = new SearchView();
 	},
 
 	render: function () {
 		this.$el.html(this.template());
+		this.searchView.render();
+		this.$('.search-region').append(this.searchView.$el);
 	},
 
 	template: function () {
 		return `
-			<header>
-				<img class="logo" src="#">
-				<p>Search for film, movies, and TV in style</p>
-			</header>
+			<img class="logo" src="#">
+			<p>Search for film, movies, and TV in style</p>
+			<div class="search-region"></div>
 		`;
 	}
 });

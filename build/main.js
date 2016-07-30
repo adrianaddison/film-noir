@@ -13568,10 +13568,12 @@ module.exports = {
 
 }
 },{}],5:[function(require,module,exports){
+var $ = require('jquery');
 var Backbone = require('backbone');
 
 var auth = require('../Auth/authController');
 var dashboard = require('../Dashboard/dashboardController');
+var search = require('../Search/searchController');
 var movie = require('../Movie/movieController');
 var person = require('../Person/personController');
 var tv = require('../TV/tvController');
@@ -13584,10 +13586,20 @@ module.exports = Backbone.Router.extend({
         'logout': 'logout',
         'register': 'register',
         'home': 'home',
-        // 'search/:query': 'search',
+        'search/voice/(:titles),(:actors),(:years),(:genres),(:tv)': 'voiceSearch',
+        'search/:query': 'search', // e.g. search/tarzan
+        // e.g.
+        //  #/search/tarzan,,70,true
+        //  #/search/,zachary quinto,2013,sci fi
         'movie/:id': 'movieDetails',
-        // 'tv/:id': 'tvDetails',
+        'tv/:id': 'tvDetails',
         'person/:id': 'personDetails'
+    },
+
+    initialize: function() {
+        this.on('route', function() {
+            $('html, body').animate({ scrollTop: 0 });
+        });
     },
 
     login: function () {
@@ -13620,10 +13632,22 @@ module.exports = Backbone.Router.extend({
     tvDetails: function (id) {
         auth.check();
         tv.showTVDetails(id);
+    },
+
+    search: function (query) {
+        auth.check();
+        search.search(query);
+    },
+
+    voiceSearch: function (title, actors, years, genres, tv) {
+        auth.check();
+        search.voiceSearch(title, actors, years, genres, tv);
     }
 });
-},{"../Auth/authController":11,"../Dashboard/dashboardController":13,"../Movie/movieController":20,"../Person/personController":25,"../TV/tvController":30,"backbone":1}],6:[function(require,module,exports){
+},{"../Auth/authController":12,"../Dashboard/dashboardController":14,"../Movie/movieController":21,"../Person/personController":26,"../Search/searchController":30,"../TV/tvController":35,"backbone":1,"jquery":2}],6:[function(require,module,exports){
 var Backbone = require('backbone');
+
+var HeaderView = require('./HeaderView');
 
 module.exports = Backbone.View.extend({
 
@@ -13633,16 +13657,18 @@ module.exports = Backbone.View.extend({
 
     initialize: function () {
         this.pageViews = [];
+        this.headerView = new HeaderView();
     },
 
     render: function () {
         this.$el.html(this.template());
+        this.headerView.render();
+        this.$('.header-region').append(this.headerView.$el);
     },
 
     template: function () {
         return `
             <div class="header-region"></div>
-            <div class="search-region"></div>
             <div class="page-region"></div>
         `;
     },
@@ -13664,7 +13690,38 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"backbone":1}],7:[function(require,module,exports){
+},{"./HeaderView":7,"backbone":1}],7:[function(require,module,exports){
+var Backbone = require('backbone');
+
+var SearchView = require('../Search/SearchView');
+
+var HeaderView = Backbone.View.extend({
+
+	tagName: 'header',
+
+	className: 'header',
+
+	initialize: function () {
+		this.searchView = new SearchView();
+	},
+
+	render: function () {
+		this.$el.html(this.template());
+		this.searchView.render();
+		this.$('.search-region').append(this.searchView.$el);
+	},
+
+	template: function () {
+		return `
+			<img class="logo" src="#">
+			<p>Search for film, movies, and TV in style</p>
+			<div class="search-region"></div>
+		`;
+	}
+});
+
+module.exports = HeaderView;
+},{"../Search/SearchView":29,"backbone":1}],8:[function(require,module,exports){
 var AppView = require('./AppView');
 
 module.exports = {
@@ -13678,7 +13735,7 @@ module.exports = {
     }
 
 };
-},{"./AppView":6}],8:[function(require,module,exports){
+},{"./AppView":6}],9:[function(require,module,exports){
 var Backbone = require('backbone');
 
 var auth = require('./authController');
@@ -13715,7 +13772,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"./authController":11,"backbone":1}],9:[function(require,module,exports){
+},{"./authController":12,"backbone":1}],10:[function(require,module,exports){
 var Backbone = require('backbone');
 
 var auth = require('./authController');
@@ -13751,7 +13808,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"./authController":11,"backbone":1}],10:[function(require,module,exports){
+},{"./authController":12,"backbone":1}],11:[function(require,module,exports){
 var Backbone = require('backbone');
 
 module.exports = Backbone.Model.extend({
@@ -13771,7 +13828,7 @@ module.exports = Backbone.Model.extend({
     }
 
 });
-},{"backbone":1}],11:[function(require,module,exports){
+},{"backbone":1}],12:[function(require,module,exports){
 var $ = require('jquery');
 var Backbone = require('backbone');
 
@@ -13852,7 +13909,7 @@ module.exports = {
     }
 
 };
-},{"../App/appController":7,"./LoginView":8,"./RegisterView":9,"./UserModel":10,"backbone":1,"jquery":2}],12:[function(require,module,exports){
+},{"../App/appController":8,"./LoginView":9,"./RegisterView":10,"./UserModel":11,"backbone":1,"jquery":2}],13:[function(require,module,exports){
 var Backbone = require('backbone');
 
 var MovieNowPlayingView = require('../Movie/MovieNowPlayingView');
@@ -13887,9 +13944,9 @@ module.exports = Backbone.View.extend({
             <div class="now-playing-region"></div>
         `;
     }
-
 });
-},{"../Movie/MovieDetailView":15,"../Movie/MovieNowPlayingView":19,"backbone":1}],13:[function(require,module,exports){
+
+},{"../Movie/MovieDetailView":16,"../Movie/MovieNowPlayingView":20,"backbone":1}],14:[function(require,module,exports){
 var Backbone = require('backbone');
 var DashboardView = require('./DashboardView');
 var MovieCollection = require('../Movie/MovieCollection');
@@ -13915,7 +13972,7 @@ module.exports = {
     }
 
 };
-},{"../API/api":4,"../App/appController":7,"../Auth/authController":11,"../Movie/MovieCollection":14,"./DashboardView":12,"backbone":1}],14:[function(require,module,exports){
+},{"../API/api":4,"../App/appController":8,"../Auth/authController":12,"../Movie/MovieCollection":15,"./DashboardView":13,"backbone":1}],15:[function(require,module,exports){
 var Backbone = require('backbone');
 
 var api = require('../API/api');
@@ -13934,7 +13991,7 @@ var MovieCollection = Backbone.Collection.extend({
 });
 
 module.exports = MovieCollection;
-},{"../API/api":4,"./MovieModel":18,"backbone":1}],15:[function(require,module,exports){
+},{"../API/api":4,"./MovieModel":19,"backbone":1}],16:[function(require,module,exports){
 var $ = require('jquery');
 var Backbone = require('backbone');
 
@@ -13978,7 +14035,7 @@ var MovieDetailView = Backbone.View.extend({
 module.exports = MovieDetailView;
 
 
-},{"../Person/PersonListView":23,"backbone":1,"jquery":2}],16:[function(require,module,exports){
+},{"../Person/PersonListView":24,"backbone":1,"jquery":2}],17:[function(require,module,exports){
 var Backbone = require('backbone');
 
 var MovieListItemView = Backbone.View.extend({
@@ -14005,7 +14062,6 @@ var MovieListItemView = Backbone.View.extend({
 	template: function (data) {
 		return `
 			<img class="movie-poster" src="${data.poster}">
-			<div>${data.title}</div>
 		`;
 	},
 
@@ -14016,7 +14072,7 @@ var MovieListItemView = Backbone.View.extend({
 
 module.exports = MovieListItemView;
 
-},{"backbone":1}],17:[function(require,module,exports){
+},{"backbone":1}],18:[function(require,module,exports){
 var Backbone = require('backbone');
 
 var MovieListItemView = require('./MovieListItemView');
@@ -14025,7 +14081,7 @@ var MovieListView = Backbone.View.extend({
 
 	tagName: 'ul',
 
-	className: 'now-playing-list',
+	className: 'movie-list',
 
 	initialize: function () {
 		this.collection.on('update', this.render.bind(this));
@@ -14048,7 +14104,7 @@ var MovieListView = Backbone.View.extend({
 });
 
 module.exports = MovieListView;
-},{"./MovieListItemView":16,"backbone":1}],18:[function(require,module,exports){
+},{"./MovieListItemView":17,"backbone":1}],19:[function(require,module,exports){
 var Backbone = require('backbone');
 
 var api = require('../API/api');
@@ -14099,7 +14155,7 @@ var MovieModel = Backbone.Model.extend({
 
 
 module.exports = MovieModel;
-},{"../API/api":4,"../Person/PersonModel":24,"backbone":1}],19:[function(require,module,exports){
+},{"../API/api":4,"../Person/PersonModel":25,"backbone":1}],20:[function(require,module,exports){
 var $ = require('jquery');
 var Backbone = require('backbone');
 
@@ -14133,7 +14189,7 @@ var MovieNowPlayingView = Backbone.View.extend({
 module.exports = MovieNowPlayingView;
 
 
-},{"./MovieListItemView":16,"backbone":1,"jquery":2}],20:[function(require,module,exports){
+},{"./MovieListItemView":17,"backbone":1,"jquery":2}],21:[function(require,module,exports){
 var MovieModel = require('./MovieModel');
 
 var MovieDetailView = require('./MovieDetailView');
@@ -14157,7 +14213,7 @@ module.exports = {
 	}
 
 };
-},{"../App/appController":7,"./MovieDetailView":15,"./MovieModel":18}],21:[function(require,module,exports){
+},{"../App/appController":8,"./MovieDetailView":16,"./MovieModel":19}],22:[function(require,module,exports){
 var $ = require('jquery');
 var Backbone = require('backbone');
 
@@ -14194,11 +14250,10 @@ var PersonDetailView = Backbone.View.extend({
 			<div class="movie-credits-region"></div>
 		`;
 	}
-
 });
 
 module.exports = PersonDetailView;
-},{"../Movie/MovieListView":17,"backbone":1,"jquery":2}],22:[function(require,module,exports){
+},{"../Movie/MovieListView":18,"backbone":1,"jquery":2}],23:[function(require,module,exports){
 var Backbone = require('backbone');
 
 var PersonListItemView = Backbone.View.extend({
@@ -14235,7 +14290,7 @@ var PersonListItemView = Backbone.View.extend({
 });
 
 module.exports = PersonListItemView;
-},{"backbone":1}],23:[function(require,module,exports){
+},{"backbone":1}],24:[function(require,module,exports){
 var Backbone = require('backbone');
 
 var PersonListItemView = require('./PersonListItemView');
@@ -14267,7 +14322,7 @@ var PersonListView = Backbone.View.extend({
 });
 
 module.exports = PersonListView;
-},{"./PersonListItemView":22,"backbone":1}],24:[function(require,module,exports){
+},{"./PersonListItemView":23,"backbone":1}],25:[function(require,module,exports){
 var Backbone = require('backbone');
 
 var api = require('../API/api');
@@ -14288,10 +14343,10 @@ var PersonModel = Backbone.Model.extend({
 
 	initialize: function () {
 		var _this = this;
-		this.movieCredits = new MovieCreditsCollection(this.get('movie_credits'));
+		this.movieCredits = new MovieCreditsCollection(this.get('movie_credits,tv_credits'));
         this.on('sync', function () {
             // If the model is fetched, reset the models inside of the movie credits collection.
-            _this.movieCredits.reset(_this.get('movie_credits'));
+            _this.movieCredits.reset(_this.get('movie_credits,tv_credits'));
         });
 	},
 
@@ -14302,7 +14357,7 @@ var PersonModel = Backbone.Model.extend({
 	fetch: function (options) {
 		options = Object.assign({
 			data: {
-				append_to_response: 'movie_credits'
+				append_to_response: 'movie_credits,tv_credits'
 			}
 		}, options);
 
@@ -14313,7 +14368,7 @@ var PersonModel = Backbone.Model.extend({
 
 
 module.exports = PersonModel;
-},{"../API/api":4,"../Movie/MovieModel":18,"backbone":1}],25:[function(require,module,exports){
+},{"../API/api":4,"../Movie/MovieModel":19,"backbone":1}],26:[function(require,module,exports){
 var app = require('../App/appController');
 
 var PersonModel = require('./PersonModel');
@@ -14335,17 +14390,252 @@ module.exports = {
 			}
 		});
 	}
-
-	// showPerson: function (id) {
-	// 	// Creates a new model with the id specified
-	// 	var personModel = new PersonModel(id);
-	// 	// Fetches it
-	// 	personModel.fetch();
-	// 	// Shows the detail view of that model	
-	// }
-	// Backbone.trigger('app:show', view);
 };
-},{"../App/appController":7,"./PersonDetailView":21,"./PersonModel":24}],26:[function(require,module,exports){
+},{"../App/appController":8,"./PersonDetailView":22,"./PersonModel":25}],27:[function(require,module,exports){
+var Backbone = require('backbone');
+
+var api = require('../API/api');
+
+var SearchCollection = Backbone.Collection.extend({
+
+	model: null, // Need to specify on instatiation
+
+	initialize: function (models, options) {
+		if (!options.model) {
+			throw new Error('Must pass a model constructor to SearchCollection');
+		}
+		// The SearchCollection instance should be given
+		// a category to use for searches.
+		this.category = options.category || '';
+	},
+
+	url: function () {
+		return api.url('search/' + this.category);
+	},
+
+	parse: function (response) {
+		return response.results;
+	}
+
+});
+
+module.exports = SearchCollection;
+},{"../API/api":4,"backbone":1}],28:[function(require,module,exports){
+var Backbone = require('backbone');
+
+var SearchResultsView = Backbone.View.extend({
+
+	className: 'search-results',
+
+	initialize: function (options) {
+		// Get the title from the options
+		this.title = options.title;
+		// Get the listView (constructor) from the options
+		this.listViewConstructor = options.listView;
+		// Create a new instance of that list view and pass it
+		// the results collection
+		this.listView = new this.listViewConstructor({
+			collection: this.collection
+		});
+	},
+
+	render: function () {
+		var data = {
+			title: this.title
+		};
+		this.$el.html(this.template(data));
+		this.listView.render();
+		this.$('.list-region').append(this.listView.$el);
+	},
+
+	template: function (data) {
+		return `
+			<h3>${data.title}</h3>
+			<div class="list-region"></div>
+		`;
+	}
+
+});
+
+module.exports = SearchResultsView;
+},{"backbone":1}],29:[function(require,module,exports){
+// Search View should include an input where
+// user types in and searches for movies
+
+var Backbone = require('backbone');
+
+module.exports = Backbone.View.extend({
+
+	className: 'search',
+
+	events: {
+		'click .search-button': 'handleSearchClick',
+		'keyup .search-for': 'handleSearchKeyup'
+	},
+
+	render: function () {
+		this.$el.html(this.template());
+	},
+
+	template: function () {
+		return `
+			<input class="search-for">
+			<button class="search-button">Search</button>		
+		`;
+	},
+
+	handleSearchClick: function () {
+		var query = this.$('.search-for').val();
+		Backbone.history.navigate('search/' + query, { trigger: true });
+		this.$('.search-for').val('');
+	},
+
+	handleSearchKeyup: function () {
+
+	},
+
+	open: function (onItemClick) {
+		if (this.listView) {
+			this.listView.remove();
+		}
+
+		this.$el.addClass('is-visible');
+
+		this.listView = new MovieListView({
+			collection: this.collection,
+			onItemClick: onItemClick
+		});
+
+		this.collection.fetch();
+
+		this.listView.render();
+
+		this.$('.list-region').append(this.listView.$el);
+	}
+});
+
+
+
+
+
+
+},{"backbone":1}],30:[function(require,module,exports){
+var app = require('../App/appController');
+
+var SearchCollection = require('./SearchCollection');
+var MovieModel = require('../Movie/MovieModel');
+var PersonModel = require('../Person/PersonModel');
+var TVModel = require('../TV/TVModel');
+
+var MovieListView = require('../Movie/MovieListView');
+var PersonListView = require('../Person/PersonListView');
+var TVListView = require('../TV/TVListView');
+
+var SearchResultsView = require('./SearchResultsView');
+
+module.exports = {
+
+	search: function (query) {
+		var fetchOptions = {
+			data: {
+				query: query
+			}
+		};
+		// Takes a query
+		// 
+		// Creates three search collections with the
+		// different categories (movie, person, tv)
+		// and fetches them.
+		var movieResults = new SearchCollection([], {
+			model: MovieModel,
+			category: 'movie'
+		});
+		var personResults = new SearchCollection([], {
+			model: PersonModel,
+			category: 'person'
+		});
+		var tvResults = new SearchCollection([], {
+			model: TVModel,
+			category: 'tv'
+		});
+
+		movieResults.fetch(fetchOptions);
+		personResults.fetch(fetchOptions);
+		tvResults.fetch(fetchOptions);
+		
+		// Passes search collections to corresponding
+		// SearchResultsViews
+		
+		var movieSearchResultsView = new SearchResultsView({
+			collection: movieResults,
+			title: 'Movies',
+			listView: MovieListView
+		});
+		
+		var personSearchResultsView = new SearchResultsView({
+			collection: personResults,
+			title: 'People',
+			listView: PersonListView
+		});
+
+		var tvSearchResultsView = new SearchResultsView({
+			collection: tvResults,
+			title: 'TV shows',
+			listView: TVListView
+		});
+
+		// And shows each SearchResultsView
+		app.showPage(
+			movieSearchResultsView,
+			personSearchResultsView,
+			tvSearchResultsView
+		);
+	},
+
+	voiceSearch: function (title, actor, year, genre, tv) {
+		var criteriaCount = 0;
+		var finishedRequests = 0;
+
+		function done () {
+			finishedRequests++;
+			if (criteriaCount === finishedRequests) {
+				// Do the /discovery request with the IDs
+				// once all of the initial requests have
+				// finished.
+			}
+		}
+
+		if (title) {
+			criteriaCount++;
+			if (tv) {
+				// Make a request to get tv id
+			} else {
+				// Make a request to get movie id
+			}
+		}
+
+		if (actor) {
+			criteriaCount++;
+			// Make a request to get actor id
+		}
+
+		if (genre) {
+			criteriaCount++;
+			// Make a request to get genre id
+		}
+
+		if (year) {
+
+		}
+
+		console.log('Title: ' + title);
+		console.log('Actors: ' + actor);
+		console.log('Years: ' + year);
+		console.log('Genres: ' + genre);
+		console.log('TV: ' + tv);
+	}
+};
+},{"../App/appController":8,"../Movie/MovieListView":18,"../Movie/MovieModel":19,"../Person/PersonListView":24,"../Person/PersonModel":25,"../TV/TVListView":33,"../TV/TVModel":34,"./SearchCollection":27,"./SearchResultsView":28}],31:[function(require,module,exports){
 var $ = require('jquery');
 var Backbone = require('backbone');
 
@@ -14387,7 +14677,7 @@ var TVDetailView = Backbone.View.extend({
 });
 
 module.exports = TVDetailView;
-},{"../TV/TVListView":28,"backbone":1,"jquery":2}],27:[function(require,module,exports){
+},{"../TV/TVListView":33,"backbone":1,"jquery":2}],32:[function(require,module,exports){
 var Backbone = require('backbone');
 
 var TVListItemView = Backbone.View.extend({
@@ -14425,7 +14715,7 @@ var TVListItemView = Backbone.View.extend({
 
 module.exports = TVListItemView;
 
-},{"backbone":1}],28:[function(require,module,exports){
+},{"backbone":1}],33:[function(require,module,exports){
 var Backbone = require('backbone');
 
 var TVListItemView = require('./TVListItemView');
@@ -14457,7 +14747,7 @@ var TVListView = Backbone.View.extend({
 });
 
 module.exports = TVListView;
-},{"./TVListItemView":27,"backbone":1}],29:[function(require,module,exports){
+},{"./TVListItemView":32,"backbone":1}],34:[function(require,module,exports){
 var Backbone = require('backbone');
 
 var api = require('../API/api');
@@ -14508,7 +14798,7 @@ var TVModel = Backbone.Model.extend({
 
 
 module.exports = TVModel;
-},{"../API/api":4,"../Person/PersonModel":24,"backbone":1}],30:[function(require,module,exports){
+},{"../API/api":4,"../Person/PersonModel":25,"backbone":1}],35:[function(require,module,exports){
 var app = require('../App/appController');
 
 var TVModel = require('./TVModel');
@@ -14532,7 +14822,7 @@ module.exports = {
 	}
 
 };
-},{"../App/appController":7,"./TVDetailView":26,"./TVModel":29}],31:[function(require,module,exports){
+},{"../App/appController":8,"./TVDetailView":31,"./TVModel":34}],36:[function(require,module,exports){
 var $ = require('jquery');
 var Backbone = require('backbone');
 
@@ -14546,4 +14836,4 @@ app.appView.render();
 $(document.body).append(app.appView.$el);
 
 Backbone.history.start();
-},{"./components/App/AppRouter":5,"./components/App/appController":7,"backbone":1,"jquery":2}]},{},[31]);
+},{"./components/App/AppRouter":5,"./components/App/appController":8,"backbone":1,"jquery":2}]},{},[36]);

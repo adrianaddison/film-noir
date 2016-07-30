@@ -6,7 +6,7 @@ var MovieListView = Backbone.View.extend({
 
 	tagName: 'ul',
 
-	className: 'now-playing-list',
+	className: 'movie-list',
 
 	initialize: function () {
 		this.collection.on('update', this.render.bind(this));

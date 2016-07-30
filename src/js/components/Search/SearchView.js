@@ -3,20 +3,13 @@
 
 var Backbone = require('backbone');
 
-var MovieSearchCollection = require('../Movie/MovieSearchCollection');
-var MovieListView = require('../Movie/MovieListView');
-
-var SearchView = Backbone.View.extend({
+module.exports = Backbone.View.extend({
 
 	className: 'search',
 
 	events: {
 		'click .search-button': 'handleSearchClick',
-		'keyup .search-for': 'handleSearchKeyup '
-	},
-
-	initialize: function () {
-		this.collection = new MovieCollection();
+		'keyup .search-for': 'handleSearchKeyup'
 	},
 
 	render: function () {
@@ -25,20 +18,40 @@ var SearchView = Backbone.View.extend({
 
 	template: function () {
 		return `
-			<div class="list-region"></div>
 			<input class="search-for">
 			<button class="search-button">Search</button>		
 		`;
 	},
 
 	handleSearchClick: function () {
-		this.collection.fetch({
+		var query = this.$('.search-for').val();
+		Backbone.history.navigate('search/' + query, { trigger: true });
+		this.$('.search-for').val('');
+	},
 
+	handleSearchKeyup: function () {
 
-		})
+	},
+
+	open: function (onItemClick) {
+		if (this.listView) {
+			this.listView.remove();
+		}
+
+		this.$el.addClass('is-visible');
+
+		this.listView = new MovieListView({
+			collection: this.collection,
+			onItemClick: onItemClick
+		});
+
+		this.collection.fetch();
+
+		this.listView.render();
+
+		this.$('.list-region').append(this.listView.$el);
 	}
 });
-
 
 
 
