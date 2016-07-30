@@ -1,0 +1,27 @@
+@import '../../lib/normalize';
+
+@import 'vars';
+@import 'components/header';
+@import 'components/logo';
+@import 'components/main';
+@import 'components/search';
+@import 'components/voice';
+@import 'components/posters';
+
+*, *:before, *:after {
+	box-sizing: border-box;
+}
+
+body {
+	background-color: #000;
+	background-image: url(img/broken-noise.png);
+	background-size: 600px;
+}
+
+h3 {
+	padding-left: 10%;
+	color: $color-white;
+	font-family: 'Ironick NF';
+	font-size: 24px;
+	text-decoration: underline;
+}
