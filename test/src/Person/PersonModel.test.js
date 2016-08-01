@@ -1,4 +1,4 @@
-var PersonModel = require('../../../src/js/components/Person/PersonModel');
+var MovieModel = require('../../../src/js/components/Movie/movieResources/').PersonModel;
 
 // describe() describes a suite of test acases (aka unit test)
 describe('PersonModel', function () {

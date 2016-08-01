@@ -1,4 +1,4 @@
-var MovieModel = require('../../../src/js/components/Movie/MovieModel');
+var MovieModel = require('../../../src/js/components/Movie/movieResources/').MovieModel;
 
 // describe() describes a suite of test acases (aka unit test)
 describe('MovieModel', function () {

@@ -13572,17 +13572,11 @@ var Backbone = require('backbone');
 
 var api = require('../API/api');
 
-var PersonModel = require('../Person/PersonModel');
-
-var PersonCreditsCollection = Backbone.Collection.extend({
-    model: PersonModel
-});
-
 var MovieModel = Backbone.Model.extend({
 
     initialize: function () {
         var _this = this;
-        this.credits = new PersonCreditsCollection();
+        this.credits = new PersonCollection();
         this.on('sync', function () {
             // If the model is fetched, reset the models inside of the credits collection.
             _this.credits.reset(_this.get('credits').cast);
@@ -13616,24 +13610,6 @@ var MovieModel = Backbone.Model.extend({
 
 });
 
-
-module.exports = MovieModel;
-},{"../API/api":4,"../Person/PersonModel":6,"backbone":1}],6:[function(require,module,exports){
-var Backbone = require('backbone');
-
-var api = require('../API/api');
-
-var MovieModel = require('../Movie/MovieModel');
-var TVModel = require('../TV/TVModel');
-
-var MovieCreditsCollection = Backbone.Collection.extend({
-    // model: MovieModel
-});
-
-var TVCreditsCollection = Backbone.Collection.extend({
-    model: TVModel
-});
-
 var PersonModel = Backbone.Model.extend({
 	
 	urlRoot: api.url('person'),
@@ -13644,20 +13620,14 @@ var PersonModel = Backbone.Model.extend({
 
 	initialize: function () {
 		var _this = this;
-		var tvCredits = [];
 
-		if (this.get('tv_credits')) {
-			tvCredits = this.get('tv_credits').cast;
-		}
-
-		this.movieCredits = new MovieCreditsCollection();
-		// this.tvCredits = new TVCreditsCollection(tvCredits);
+		this.movieCredits = new MovieCollection();
+		this.tvCredits = new TVCollection();
 
         this.on('sync', function () {
             // If the model is fetched, reset the models inside of the movie credits collection.
-            console.log(_this.get('movie_credits').cast)
             _this.movieCredits.reset(_this.get('movie_credits').cast);
-            // _this.tvCredits.reset(_this.get('tv_credits').cast);
+            _this.tvCredits.reset(_this.get('tv_credits').cast);
         });
 	},
 
@@ -13677,24 +13647,11 @@ var PersonModel = Backbone.Model.extend({
 
 });
 
-
-module.exports = PersonModel;
-},{"../API/api":4,"../Movie/MovieModel":5,"../TV/TVModel":7,"backbone":1}],7:[function(require,module,exports){
-var Backbone = require('backbone');
-
-var api = require('../API/api');
-
-var PersonModel = require('../Person/PersonModel');
-
-var PersonCreditsCollection = Backbone.Collection.extend({
-    model: PersonModel
-});
-
 var TVModel = Backbone.Model.extend({
 
     initialize: function () {
         var _this = this;
-        this.credits = new PersonCreditsCollection();
+        this.credits = new PersonCollection();
         this.on('sync', function () {
             // If the model is fetched, reset the models inside of the credits collection.
             _this.credits.reset(_this.get('credits').cast);
@@ -13728,10 +13685,51 @@ var TVModel = Backbone.Model.extend({
 
 });
 
+var MovieCollection = Backbone.Collection.extend({
 
-module.exports = TVModel;
-},{"../API/api":4,"../Person/PersonModel":6,"backbone":1}],8:[function(require,module,exports){
-var MovieModel = require('../../../src/js/components/Movie/MovieModel');
+	model: MovieModel,
+
+	url: api.url('movie'),
+
+	parse: function (response) {
+		return response.results;
+	}
+});
+
+var PersonCollection = Backbone.Collection.extend({
+
+	model: PersonModel,
+
+	url: api.url('person'),
+
+	parse: function (response) {
+		return response.results;
+	}
+
+});
+
+var TVCollection = Backbone.Collection.extend({
+
+	model: TVModel,
+
+	url: api.url('tv'),
+
+	parse: function (response) {
+		return response.results;
+	}
+
+});
+
+module.exports = {
+	MovieModel: MovieModel,
+	MovieCollection: MovieCollection,
+	PersonModel: PersonModel,
+	PersonCollection: PersonCollection,
+    TVModel: TVModel,
+    TVCollection: TVCollection
+};
+},{"../API/api":4,"backbone":1}],6:[function(require,module,exports){
+var MovieModel = require('../../../src/js/components/Movie/movieResources/').MovieModel;
 
 // describe() describes a suite of test acases (aka unit test)
 describe('MovieModel', function () {
@@ -13749,8 +13747,8 @@ describe('MovieModel', function () {
 		expect(this.model.urlRoot).to.equal(api.url('movie'));
 	});
 });
-},{"../../../src/js/components/Movie/MovieModel":5}],9:[function(require,module,exports){
-var PersonModel = require('../../../src/js/components/Person/PersonModel');
+},{"../../../src/js/components/Movie/movieResources/":5}],7:[function(require,module,exports){
+var MovieModel = require('../../../src/js/components/Movie/movieResources/').PersonModel;
 
 // describe() describes a suite of test acases (aka unit test)
 describe('PersonModel', function () {
@@ -13765,8 +13763,8 @@ describe('PersonModel', function () {
 	});
 
 });
-},{"../../../src/js/components/Person/PersonModel":6}],10:[function(require,module,exports){
-var TVModel = require('../../../src/js/components/TV/TVModel');
+},{"../../../src/js/components/Movie/movieResources/":5}],8:[function(require,module,exports){
+var MovieModel = require('../../../src/js/components/Movie/movieResources/').TVModel;
 
 // describe() describes a suite of test acases (aka unit test)
 describe('TVModel', function () {
@@ -13780,7 +13778,7 @@ describe('TVModel', function () {
 		this.model = null;
 	});
 });
-},{"../../../src/js/components/TV/TVModel":7}],11:[function(require,module,exports){
+},{"../../../src/js/components/Movie/movieResources/":5}],9:[function(require,module,exports){
 // Use the expect version of chai assertions - http://chaijs.com/api/bdd
 window.expect = chai.expect;
 
@@ -13793,4 +13791,4 @@ require('./Person/PersonModel.test');
 require('./TV/TVModel.test');
 
 mocha.run();
-},{"./Movie/MovieModel.test":8,"./Person/PersonModel.test":9,"./TV/TVModel.test":10}]},{},[11]);
+},{"./Movie/MovieModel.test":6,"./Person/PersonModel.test":7,"./TV/TVModel.test":8}]},{},[9]);

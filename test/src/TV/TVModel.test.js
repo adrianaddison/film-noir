@@ -1,4 +1,4 @@
-var TVModel = require('../../../src/js/components/TV/TVModel');
+var MovieModel = require('../../../src/js/components/Movie/movieResources/').TVModel;
 
 // describe() describes a suite of test acases (aka unit test)
 describe('TVModel', function () {
