@@ -381,6 +381,9 @@ textarea {
   height: 410px;
   text-align: center; }
 
+.header-small {
+  text-align: left; }
+
 .header h1 {
   padding-top: .4em;
   font-family: 'Ironick NF';
@@ -415,8 +418,8 @@ textarea {
 .logo-small {
   height: 40px; }
 
-main {
-  padding-top: 368px;
+.page-region {
+  padding: 368px 1em 0 1em;
   height: 100vh;
   overflow-y: auto; }
 
@@ -480,11 +483,6 @@ main {
   font-size: 24xpx;
   font-family: 'Noto Sans'; }
 
-.movie-poster {
-  height: 200px;
-  width: 40%;
-  text-align: center; }
-
 .now-playing {
   overflow-x: scroll;
   margin: 0 auto;
@@ -502,18 +500,47 @@ main {
   list-style-type: none;
   display: inline; }
 
+.person-detail > img {
+  display: block;
+  margin: 0 auto;
+  height: 300px; }
+
+.person-detail-name {
+  font-size: 28px; }
+
+.movie-list {
+  padding: 0;
+  margin: 0; }
+
+.movie-list:after {
+  content: '';
+  display: block;
+  clear: both; }
+
+.movie-item {
+  display: inline-block;
+  width: 50%;
+  padding: 5%; }
+
+.movie-poster {
+  width: 100%; }
+
 *, *:before, *:after {
   box-sizing: border-box; }
 
 body {
   background-color: #000;
   background-image: url(img/broken-noise.png);
-  background-size: 600px; }
+  background-size: 600px;
+  color: #D3D3D3; }
 
 h3 {
   padding-left: 10%;
-  color: #D3D3D3;
   font-size: 22px;
+  font-family: "Noto Sans"; }
+
+h2 {
+  font-size: 19px;
   font-family: "Noto Sans"; }
 
 /*# sourceMappingURL=main.css.map */

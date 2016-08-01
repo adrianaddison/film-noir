@@ -4,10 +4,12 @@
 @import 'vars';
 @import 'components/header';
 @import 'components/logo';
-@import 'components/main';
+@import 'components/app';
 @import 'components/search';
 @import 'components/voice';
 @import 'components/posters';
+@import 'components/person';
+@import 'components/movie';
 
 *, *:before, *:after {
 	box-sizing: border-box;
@@ -17,11 +19,16 @@ body {
 	background-color: #000;
 	background-image: url(img/broken-noise.png);
 	background-size: 600px;
+	color: $color-white;
 }
 
 h3 {
 	padding-left: 10%;
-	color: $color-white;
 	font-size: 22px;
+	font-family: 'Noto Sans'
+}
+
+h2 {
+	font-size: 19px;
 	font-family: 'Noto Sans'
 }
