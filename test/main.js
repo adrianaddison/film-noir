@@ -13563,9 +13563,9 @@ module.exports = {
 
 	imageUrl: function (fileName, width) {
 		width = width || 500;
+
 		return 'http://image.tmdb.org/t/p/w' + width + '/' + fileName;
 	}
-
 }
 },{}],5:[function(require,module,exports){
 var Backbone = require('backbone');
