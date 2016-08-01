@@ -13563,9 +13563,9 @@ module.exports = {
 
 	imageUrl: function (fileName, width) {
 		width = width || 500;
+
 		return 'http://image.tmdb.org/t/p/w' + width + '/' + fileName;
 	}
-
 }
 },{}],5:[function(require,module,exports){
 var $ = require('jquery');
@@ -14035,6 +14035,7 @@ var MovieDetailView = Backbone.View.extend({
 	render: function () {
 		var _this = this.model
 		this.$el.html(this.template({
+			poster: this.model.getMoviePoster(),
 			title: this.model.get('title'),
 			overview: this.model.get('overview'),
 			release_date: this.model.get('release_date')
@@ -14045,8 +14046,7 @@ var MovieDetailView = Backbone.View.extend({
 
 	template: function (data) {
 		return `
-			<div class=""></div>
-			<h2 class="movie-detal-title">${data.title}</h2>
+			<img class="movie-poster" src="${data.poster}">
 			<p>Overview: ${data.overview}</p>
 			<span>Release Date: ${data.release_date}</span>
 			<div class="credits-region"></div>
@@ -14383,7 +14383,6 @@ var PersonDetailView = Backbone.View.extend({
 
 	template: function (data) {
 		return `
-			<div class=""></div>
 			<img src="${data.profile}">
 			<h2 class="person-detail-name">${data.name}</h2>
 			<p>Biography: ${data.biography}</p>
@@ -14750,6 +14749,7 @@ var TVDetailView = Backbone.View.extend({
 	render: function () {
 		var _this = this.model
 		this.$el.html(this.template({
+			poster: this.model.getMoviePoster(),
 			name: this.model.get('name'),
 			overview: this.model.get('overview'),
 			first_air_date: this.model.get('first_air_date')
@@ -14760,8 +14760,7 @@ var TVDetailView = Backbone.View.extend({
 
 	template: function (data) {
 		return `
-			<div class=""></div>
-			<h2 class="tv-detail-name">${data.name}</h2>
+			<img class="movie-poster" src="${data.poster}">
 			<p>Overview: ${data.overview}</p>
 			<span>First Air Date: ${data.first_air_date}</span>
 			<div class="credits-region"></div>
@@ -14798,7 +14797,6 @@ var TVListItemView = Backbone.View.extend({
 	template: function (data) {
 		return `
 			<img class="tv-poster" src="${data.poster}">
-			<div>${data.name}</div>
 		`;
 	},
 
