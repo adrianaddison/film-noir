@@ -16,7 +16,7 @@ var TVListItemView = Backbone.View.extend({
 
 	render: function () {
 		this.$el.html(this.template({
-			title: this.model.get('title'),
+			name: this.model.get('name'),
 			poster: this.model.getMoviePoster()
 		}));
 	},
@@ -24,7 +24,7 @@ var TVListItemView = Backbone.View.extend({
 	template: function (data) {
 		return `
 			<img class="tv-poster" src="${data.poster}">
-			<div>${data.title}</div>
+			<div>${data.name}</div>
 		`;
 	},
 

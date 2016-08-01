@@ -13644,14 +13644,14 @@ module.exports = Backbone.Router.extend({
         search.voiceSearch(title, actors, years, genres, tv);
     }
 });
-},{"../Auth/authController":12,"../Dashboard/dashboardController":14,"../Movie/movieController":21,"../Person/personController":26,"../Search/searchController":30,"../TV/tvController":35,"backbone":1,"jquery":2}],6:[function(require,module,exports){
+},{"../Auth/authController":12,"../Dashboard/dashboardController":14,"../Movie/movieController":19,"../Person/personController":24,"../Search/searchController":28,"../TV/tvController":32,"backbone":1,"jquery":2}],6:[function(require,module,exports){
 var Backbone = require('backbone');
 
 var HeaderView = require('./HeaderView');
 
 module.exports = Backbone.View.extend({
 
-    tagName: 'main',
+    tagName: 'body',
 
     className: 'app',
 
@@ -13669,7 +13669,7 @@ module.exports = Backbone.View.extend({
     template: function () {
         return `
             <div class="header-region"></div>
-            <div class="page-region"></div>
+            <main class="page-region"></main>
         `;
     },
 
@@ -13701,27 +13701,70 @@ var HeaderView = Backbone.View.extend({
 
 	className: 'header',
 
+	events: {
+		'click .logo-small, .logo-large': 'goHome'
+	},
+
 	initialize: function () {
+		this.largeMode = true;
 		this.searchView = new SearchView();
+		this.listenTo(Backbone.history, 'route', this.update.bind(this));
 	},
 
 	render: function () {
-		this.$el.html(this.template());
+		if (this.largeMode) {
+			this.$el.html(this.template());
+			this.$el.removeClass('header-small');
+		} else {
+			this.$el.html(this.templateSmall());
+			this.$el.addClass('header-small');
+		}
 		this.searchView.render();
 		this.$('.search-region').append(this.searchView.$el);
 	},
 
 	template: function () {
 		return `
-			<img class="logo" src="#">
-			<p>Search for film, movies, and TV in style</p>
+			<img class="logo-large" src="img/logo-large.png">
+			<h1>Search for film, movies, and TV in style</h1>
+			<div class="search-region"></div>
+			<div class="voice-region"></div>
+		`;
+	},
+
+	templateSmall: function () {
+		return `
+			<div class="header-top">
+				<div class="header-left">
+					<img class="logo-small" src="img/logo-small.png">
+				</div>
+				<div class="header-right">
+					<div class="voice-region"></div>
+				</div>
+			</div>
 			<div class="search-region"></div>
 		`;
+	},
+
+	update: function () {
+		var route = Backbone.history.getFragment();
+
+		if (route === 'home' || route === '') {
+			this.largeMode = true;
+		} else {
+			this.largeMode = false;
+		}
+
+		this.render();
+	},
+
+	goHome: function () {
+		Backbone.history.navigate('', { trigger: true });
 	}
 });
 
 module.exports = HeaderView;
-},{"../Search/SearchView":29,"backbone":1}],8:[function(require,module,exports){
+},{"../Search/SearchView":27,"backbone":1}],8:[function(require,module,exports){
 var AppView = require('./AppView');
 
 module.exports = {
@@ -13938,18 +13981,17 @@ module.exports = Backbone.View.extend({
 
     template: function (data) {
         return `
-            <h3>Dashboard</h3>
-            Welcome, ${data.username}.
-            <a href="#/logout">Logout</a>
+            <h3>In Theaters Now</h3>
             <div class="now-playing-region"></div>
         `;
     }
 });
 
-},{"../Movie/MovieDetailView":16,"../Movie/MovieNowPlayingView":20,"backbone":1}],14:[function(require,module,exports){
+},{"../Movie/MovieDetailView":15,"../Movie/MovieNowPlayingView":18,"backbone":1}],14:[function(require,module,exports){
 var Backbone = require('backbone');
 var DashboardView = require('./DashboardView');
-var MovieCollection = require('../Movie/MovieCollection');
+// var MovieCollection = require('../Movie/MovieCollection');
+var movieResources = require('../Movie/movieResources');
 
 var api = require('../API/api');
 var app = require('../App/appController');
@@ -13958,7 +14000,7 @@ var auth = require('../Auth/authController');
 module.exports = {
 
     showDashboard: function () {
-		var movieNowPlaying = new MovieCollection();
+		var movieNowPlaying = new movieResources.MovieCollection();
 
 		movieNowPlaying.fetch({
 			url: api.url('movie/now_playing')
@@ -13972,26 +14014,7 @@ module.exports = {
     }
 
 };
-},{"../API/api":4,"../App/appController":8,"../Auth/authController":12,"../Movie/MovieCollection":15,"./DashboardView":13,"backbone":1}],15:[function(require,module,exports){
-var Backbone = require('backbone');
-
-var api = require('../API/api');
-
-var MovieModel = require('./MovieModel');
-
-var MovieCollection = Backbone.Collection.extend({
-
-	model: MovieModel,
-
-	url: api.url('movie'),
-
-	parse: function (response) {
-		return response.results;
-	}
-});
-
-module.exports = MovieCollection;
-},{"../API/api":4,"./MovieModel":19,"backbone":1}],16:[function(require,module,exports){
+},{"../API/api":4,"../App/appController":8,"../Auth/authController":12,"../Movie/movieResources":20,"./DashboardView":13,"backbone":1}],15:[function(require,module,exports){
 var $ = require('jquery');
 var Backbone = require('backbone');
 
@@ -14035,7 +14058,7 @@ var MovieDetailView = Backbone.View.extend({
 module.exports = MovieDetailView;
 
 
-},{"../Person/PersonListView":24,"backbone":1,"jquery":2}],17:[function(require,module,exports){
+},{"../Person/PersonListView":23,"backbone":1,"jquery":2}],16:[function(require,module,exports){
 var Backbone = require('backbone');
 
 var MovieListItemView = Backbone.View.extend({
@@ -14072,7 +14095,7 @@ var MovieListItemView = Backbone.View.extend({
 
 module.exports = MovieListItemView;
 
-},{"backbone":1}],18:[function(require,module,exports){
+},{"backbone":1}],17:[function(require,module,exports){
 var Backbone = require('backbone');
 
 var MovieListItemView = require('./MovieListItemView');
@@ -14104,58 +14127,7 @@ var MovieListView = Backbone.View.extend({
 });
 
 module.exports = MovieListView;
-},{"./MovieListItemView":17,"backbone":1}],19:[function(require,module,exports){
-var Backbone = require('backbone');
-
-var api = require('../API/api');
-
-var PersonModel = require('../Person/PersonModel');
-
-var PersonCreditsCollection = Backbone.Collection.extend({
-    model: PersonModel
-});
-
-var MovieModel = Backbone.Model.extend({
-
-    initialize: function () {
-        var _this = this;
-        this.credits = new PersonCreditsCollection();
-        this.on('sync', function () {
-            // If the model is fetched, reset the models inside of the credits collection.
-            _this.credits.reset(_this.get('credits').cast);
-        });
-    },
-
-    urlRoot: api.url('movie'),
-
-    url: function () {
-        return api.url('movie/' + this.get('id'));
-    },
-
-    getMoviePoster: function () {
-        var poster = this.get('poster_path');
-        var image = api.imageUrl(poster);
-
-        return image;
-    },
-
-    // Override the default fetch method to always
-    // append the credits to the response.
-    fetch: function (options) {
-        options = Object.assign({
-            data: {
-                append_to_response: 'credits'
-            }
-        }, options);
-
-        Backbone.Model.prototype.fetch.call(this, options);
-    }
-
-});
-
-
-module.exports = MovieModel;
-},{"../API/api":4,"../Person/PersonModel":25,"backbone":1}],20:[function(require,module,exports){
+},{"./MovieListItemView":16,"backbone":1}],18:[function(require,module,exports){
 var $ = require('jquery');
 var Backbone = require('backbone');
 
@@ -14189,8 +14161,8 @@ var MovieNowPlayingView = Backbone.View.extend({
 module.exports = MovieNowPlayingView;
 
 
-},{"./MovieListItemView":17,"backbone":1,"jquery":2}],21:[function(require,module,exports){
-var MovieModel = require('./MovieModel');
+},{"./MovieListItemView":16,"backbone":1,"jquery":2}],19:[function(require,module,exports){
+var movieResources = require('./movieResources');
 
 var MovieDetailView = require('./MovieDetailView');
 
@@ -14199,7 +14171,7 @@ var app = require('../App/appController');
 module.exports = {
 
 	showMovieDetails: function (id) {
-		var movie = new MovieModel({ id: id });
+		var movie = new movieResources.MovieModel({ id: id });
 		
 		movie.fetch({
 			success: function () {
@@ -14213,11 +14185,173 @@ module.exports = {
 	}
 
 };
-},{"../App/appController":8,"./MovieDetailView":16,"./MovieModel":19}],22:[function(require,module,exports){
+},{"../App/appController":8,"./MovieDetailView":15,"./movieResources":20}],20:[function(require,module,exports){
+var Backbone = require('backbone');
+
+var api = require('../API/api');
+
+var MovieModel = Backbone.Model.extend({
+
+    initialize: function () {
+        var _this = this;
+        this.credits = new PersonCollection();
+        this.on('sync', function () {
+            // If the model is fetched, reset the models inside of the credits collection.
+            _this.credits.reset(_this.get('credits').cast);
+        });
+    },
+
+    urlRoot: api.url('movie'),
+
+    url: function () {
+        return api.url('movie/' + this.get('id'));
+    },
+
+    getMoviePoster: function () {
+        var poster = this.get('poster_path');
+        var image = api.imageUrl(poster);
+
+        return image;
+    },
+
+    // Override the default fetch method to always
+    // append the credits to the response.
+    fetch: function (options) {
+        options = Object.assign({
+            data: {
+                append_to_response: 'credits'
+            }
+        }, options);
+
+        Backbone.Model.prototype.fetch.call(this, options);
+    }
+
+});
+
+var PersonModel = Backbone.Model.extend({
+	
+	urlRoot: api.url('person'),
+
+    url: function () {
+        return api.url('person/' + this.get('id'));
+    },
+
+	initialize: function () {
+		var _this = this;
+
+		this.movieCredits = new MovieCollection();
+		this.tvCredits = new TVCollection();
+
+        this.on('sync', function () {
+            // If the model is fetched, reset the models inside of the movie credits collection.
+            _this.movieCredits.reset(_this.get('movie_credits').cast);
+            _this.tvCredits.reset(_this.get('tv_credits').cast);
+        });
+	},
+
+	getProfile: function () {
+		return api.imageUrl(this.get('profile_path'));
+	},
+
+	fetch: function (options) {
+		options = Object.assign({
+			data: {
+				append_to_response: 'movie_credits,tv_credits'
+			}
+		}, options);
+
+		Backbone.Model.prototype.fetch.call(this, options);
+	}
+
+});
+
+var TVModel = Backbone.Model.extend({
+
+    initialize: function () {
+        var _this = this;
+        this.credits = new PersonCollection();
+        this.on('sync', function () {
+            // If the model is fetched, reset the models inside of the credits collection.
+            _this.credits.reset(_this.get('credits').cast);
+        });
+    },
+
+    urlRoot: api.url('tv'),
+
+    url: function () {
+        return api.url('tv/' + this.get('id'));
+    },
+
+    getMoviePoster: function () {
+        var poster = this.get('poster_path');
+        var image = api.imageUrl(poster);
+
+        return image;
+    },
+
+    // Override the default fetch method to always
+    // append the credits to the response.
+    fetch: function (options) {
+        options = Object.assign({
+            data: {
+                append_to_response: 'credits'
+            }
+        }, options);
+
+        Backbone.Model.prototype.fetch.call(this, options);
+    }
+
+});
+
+var MovieCollection = Backbone.Collection.extend({
+
+	model: MovieModel,
+
+	url: api.url('movie'),
+
+	parse: function (response) {
+		return response.results;
+	}
+});
+
+var PersonCollection = Backbone.Collection.extend({
+
+	model: PersonModel,
+
+	url: api.url('person'),
+
+	parse: function (response) {
+		return response.results;
+	}
+
+});
+
+var TVCollection = Backbone.Collection.extend({
+
+	model: TVModel,
+
+	url: api.url('tv'),
+
+	parse: function (response) {
+		return response.results;
+	}
+
+});
+
+module.exports = {
+	MovieModel: MovieModel,
+	MovieCollection: MovieCollection,
+	PersonModel: PersonModel,
+	PersonCollection: PersonCollection,
+    TVModel: TVModel,
+    TVCollection: TVCollection
+};
+},{"../API/api":4,"backbone":1}],21:[function(require,module,exports){
 var $ = require('jquery');
 var Backbone = require('backbone');
 
 var MovieListView = require('../Movie/MovieListView');
+var TVListView = require('../TV/TVListView');
 
 var PersonDetailView = Backbone.View.extend({
 	
@@ -14227,8 +14361,12 @@ var PersonDetailView = Backbone.View.extend({
 		this.movieListView = new MovieListView({
 			collection: this.model.movieCredits
 		});
+		this.tvListView = new TVListView({
+			collection: this.model.tvCredits
+		});	
 		this.onSelect = options.onSelect;
 		this.render = this.render.bind(this);
+		this.listenTo(this.model, 'sync', this.render);
 	},
 
 	render: function () {
@@ -14239,21 +14377,26 @@ var PersonDetailView = Backbone.View.extend({
 		}));
 		this.movieListView.render();
 		this.$('.movie-credits-region').append(this.movieListView.$el);
+		this.tvListView.render();
+		this.$('.tv-credits-region').append(this.tvListView.$el);
 	},
 
 	template: function (data) {
 		return `
 			<div class=""></div>
 			<img src="${data.profile}">
-			<h2 class="person-detal-name">${data.name}</h2>
+			<h2 class="person-detail-name">${data.name}</h2>
 			<p>Biography: ${data.biography}</p>
+			<h2>Movie Credits</h2>
 			<div class="movie-credits-region"></div>
+			<h2>TV Credits</h2>
+			<div class="tv-credits-region"></div>
 		`;
 	}
 });
 
 module.exports = PersonDetailView;
-},{"../Movie/MovieListView":18,"backbone":1,"jquery":2}],23:[function(require,module,exports){
+},{"../Movie/MovieListView":17,"../TV/TVListView":31,"backbone":1,"jquery":2}],22:[function(require,module,exports){
 var Backbone = require('backbone');
 
 var PersonListItemView = Backbone.View.extend({
@@ -14290,7 +14433,7 @@ var PersonListItemView = Backbone.View.extend({
 });
 
 module.exports = PersonListItemView;
-},{"backbone":1}],24:[function(require,module,exports){
+},{"backbone":1}],23:[function(require,module,exports){
 var Backbone = require('backbone');
 
 var PersonListItemView = require('./PersonListItemView');
@@ -14322,63 +14465,17 @@ var PersonListView = Backbone.View.extend({
 });
 
 module.exports = PersonListView;
-},{"./PersonListItemView":23,"backbone":1}],25:[function(require,module,exports){
-var Backbone = require('backbone');
-
-var api = require('../API/api');
-
-var MovieModel = require('../Movie/MovieModel');
-
-var MovieCreditsCollection = Backbone.Collection.extend({
-    model: MovieModel
-});
-
-var PersonModel = Backbone.Model.extend({
-	
-	urlRoot: api.url('person'),
-
-    url: function () {
-        return api.url('person/' + this.get('id'));
-    },
-
-	initialize: function () {
-		var _this = this;
-		this.movieCredits = new MovieCreditsCollection(this.get('movie_credits,tv_credits'));
-        this.on('sync', function () {
-            // If the model is fetched, reset the models inside of the movie credits collection.
-            _this.movieCredits.reset(_this.get('movie_credits,tv_credits'));
-        });
-	},
-
-	getProfile: function () {
-		return api.imageUrl(this.get('profile_path'));
-	},
-
-	fetch: function (options) {
-		options = Object.assign({
-			data: {
-				append_to_response: 'movie_credits,tv_credits'
-			}
-		}, options);
-
-		Backbone.Model.prototype.fetch.call(this, options);
-	}
-
-});
-
-
-module.exports = PersonModel;
-},{"../API/api":4,"../Movie/MovieModel":19,"backbone":1}],26:[function(require,module,exports){
+},{"./PersonListItemView":22,"backbone":1}],24:[function(require,module,exports){
 var app = require('../App/appController');
 
-var PersonModel = require('./PersonModel');
+var movieResources = require('../Movie/movieResources');
 
 var PersonDetailView = require('./PersonDetailView');
 
 module.exports = {
 
 	showPersonDetails: function (id) {
-		var person = new PersonModel({ id: id });
+		var person = new movieResources.PersonModel({ id: id });
 		
 		person.fetch({
 			success: function () {
@@ -14391,7 +14488,7 @@ module.exports = {
 		});
 	}
 };
-},{"../App/appController":8,"./PersonDetailView":22,"./PersonModel":25}],27:[function(require,module,exports){
+},{"../App/appController":8,"../Movie/movieResources":20,"./PersonDetailView":21}],25:[function(require,module,exports){
 var Backbone = require('backbone');
 
 var api = require('../API/api');
@@ -14420,7 +14517,7 @@ var SearchCollection = Backbone.Collection.extend({
 });
 
 module.exports = SearchCollection;
-},{"../API/api":4,"backbone":1}],28:[function(require,module,exports){
+},{"../API/api":4,"backbone":1}],26:[function(require,module,exports){
 var Backbone = require('backbone');
 
 var SearchResultsView = Backbone.View.extend({
@@ -14458,7 +14555,7 @@ var SearchResultsView = Backbone.View.extend({
 });
 
 module.exports = SearchResultsView;
-},{"backbone":1}],29:[function(require,module,exports){
+},{"backbone":1}],27:[function(require,module,exports){
 // Search View should include an input where
 // user types in and searches for movies
 
@@ -14469,8 +14566,7 @@ module.exports = Backbone.View.extend({
 	className: 'search',
 
 	events: {
-		'click .search-button': 'handleSearchClick',
-		'keyup .search-for': 'handleSearchKeyup'
+		'click .search-box': 'handleSearchClick',
 	},
 
 	render: function () {
@@ -14479,19 +14575,15 @@ module.exports = Backbone.View.extend({
 
 	template: function () {
 		return `
-			<input class="search-for">
-			<button class="search-button">Search</button>		
+			<input class="search-box">
+			<img class="search-icon" src="img/search.png">		
 		`;
 	},
 
 	handleSearchClick: function () {
-		var query = this.$('.search-for').val();
+		var query = this.$('.search-box').val();
 		Backbone.history.navigate('search/' + query, { trigger: true });
-		this.$('.search-for').val('');
-	},
-
-	handleSearchKeyup: function () {
-
+		this.$('.search-box').val('');
 	},
 
 	open: function (onItemClick) {
@@ -14519,13 +14611,15 @@ module.exports = Backbone.View.extend({
 
 
 
-},{"backbone":1}],30:[function(require,module,exports){
+},{"backbone":1}],28:[function(require,module,exports){
 var app = require('../App/appController');
 
 var SearchCollection = require('./SearchCollection');
-var MovieModel = require('../Movie/MovieModel');
-var PersonModel = require('../Person/PersonModel');
-var TVModel = require('../TV/TVModel');
+var movieResources = require('../Movie/movieResources');
+
+var MovieModel = movieResources.MovieModel;
+var PersonModel = movieResources.PersonModel;
+var TVModel = movieResources.TVModel;
 
 var MovieListView = require('../Movie/MovieListView');
 var PersonListView = require('../Person/PersonListView');
@@ -14635,18 +14729,18 @@ module.exports = {
 		console.log('TV: ' + tv);
 	}
 };
-},{"../App/appController":8,"../Movie/MovieListView":18,"../Movie/MovieModel":19,"../Person/PersonListView":24,"../Person/PersonModel":25,"../TV/TVListView":33,"../TV/TVModel":34,"./SearchCollection":27,"./SearchResultsView":28}],31:[function(require,module,exports){
+},{"../App/appController":8,"../Movie/MovieListView":17,"../Movie/movieResources":20,"../Person/PersonListView":23,"../TV/TVListView":31,"./SearchCollection":25,"./SearchResultsView":26}],29:[function(require,module,exports){
 var $ = require('jquery');
 var Backbone = require('backbone');
 
-var TVListView = require('../TV/TVListView');
+var PersonListView = require('../Person/PersonListView');
 
 var TVDetailView = Backbone.View.extend({
 	
 	className: 'tv-detail',
 
 	initialize: function (options) {
-		this.tvListView = new TVListView({
+		this.personListView = new PersonListView({
 			collection: this.model.credits
 		});
 		this.onSelect = options.onSelect;
@@ -14656,20 +14750,20 @@ var TVDetailView = Backbone.View.extend({
 	render: function () {
 		var _this = this.model
 		this.$el.html(this.template({
-			title: this.model.get('title'),
+			name: this.model.get('name'),
 			overview: this.model.get('overview'),
-			release_date: this.model.get('release_date')
+			first_air_date: this.model.get('first_air_date')
 		}));
-		this.tvListView.render();
-		this.$('.credits-region').append(this.tvListView.$el);
+		this.personListView.render();
+		this.$('.credits-region').append(this.personListView.$el);
 	},
 
 	template: function (data) {
 		return `
 			<div class=""></div>
-			<h2 class="tv-detal-title">${data.title}</h2>
+			<h2 class="tv-detail-name">${data.name}</h2>
 			<p>Overview: ${data.overview}</p>
-			<span>Release Date: ${data.release_date}</span>
+			<span>First Air Date: ${data.first_air_date}</span>
 			<div class="credits-region"></div>
 		`;
 	}
@@ -14677,7 +14771,7 @@ var TVDetailView = Backbone.View.extend({
 });
 
 module.exports = TVDetailView;
-},{"../TV/TVListView":33,"backbone":1,"jquery":2}],32:[function(require,module,exports){
+},{"../Person/PersonListView":23,"backbone":1,"jquery":2}],30:[function(require,module,exports){
 var Backbone = require('backbone');
 
 var TVListItemView = Backbone.View.extend({
@@ -14696,7 +14790,7 @@ var TVListItemView = Backbone.View.extend({
 
 	render: function () {
 		this.$el.html(this.template({
-			title: this.model.get('title'),
+			name: this.model.get('name'),
 			poster: this.model.getMoviePoster()
 		}));
 	},
@@ -14704,7 +14798,7 @@ var TVListItemView = Backbone.View.extend({
 	template: function (data) {
 		return `
 			<img class="tv-poster" src="${data.poster}">
-			<div>${data.title}</div>
+			<div>${data.name}</div>
 		`;
 	},
 
@@ -14715,7 +14809,7 @@ var TVListItemView = Backbone.View.extend({
 
 module.exports = TVListItemView;
 
-},{"backbone":1}],33:[function(require,module,exports){
+},{"backbone":1}],31:[function(require,module,exports){
 var Backbone = require('backbone');
 
 var TVListItemView = require('./TVListItemView');
@@ -14724,7 +14818,7 @@ var TVListView = Backbone.View.extend({
 
 	tagName: 'ul',
 
-	className: 'now-airing-list',
+	className: 'credit-list',
 
 	initialize: function () {
 		this.collection.on('update', this.render.bind(this));
@@ -14747,68 +14841,17 @@ var TVListView = Backbone.View.extend({
 });
 
 module.exports = TVListView;
-},{"./TVListItemView":32,"backbone":1}],34:[function(require,module,exports){
-var Backbone = require('backbone');
-
-var api = require('../API/api');
-
-var PersonModel = require('../Person/PersonModel');
-
-var PersonCreditsCollection = Backbone.Collection.extend({
-    model: PersonModel
-});
-
-var TVModel = Backbone.Model.extend({
-
-    initialize: function () {
-        var _this = this;
-        this.credits = new PersonCreditsCollection();
-        this.on('sync', function () {
-            // If the model is fetched, reset the models inside of the credits collection.
-            _this.credits.reset(_this.get('credits').cast);
-        });
-    },
-
-    urlRoot: api.url('tv'),
-
-    url: function () {
-        return api.url('tv/' + this.get('id'));
-    },
-
-    getMoviePoster: function () {
-        var poster = this.get('poster_path');
-        var image = api.imageUrl(poster);
-
-        return image;
-    },
-
-    // Override the default fetch method to always
-    // append the credits to the response.
-    fetch: function (options) {
-        options = Object.assign({
-            data: {
-                append_to_response: 'credits'
-            }
-        }, options);
-
-        Backbone.Model.prototype.fetch.call(this, options);
-    }
-
-});
-
-
-module.exports = TVModel;
-},{"../API/api":4,"../Person/PersonModel":25,"backbone":1}],35:[function(require,module,exports){
+},{"./TVListItemView":30,"backbone":1}],32:[function(require,module,exports){
 var app = require('../App/appController');
 
-var TVModel = require('./TVModel');
+var movieResources = require('../Movie/movieResources');
 
 var TVDetailView = require('./TVDetailView');
 
 module.exports = {
 
 	showTVDetails: function (id) {
-		var tv = new TVModel({ id: id });
+		var tv = new movieResources.TVModel({ id: id });
 		
 		tv.fetch({
 			success: function () {
@@ -14822,7 +14865,7 @@ module.exports = {
 	}
 
 };
-},{"../App/appController":8,"./TVDetailView":31,"./TVModel":34}],36:[function(require,module,exports){
+},{"../App/appController":8,"../Movie/movieResources":20,"./TVDetailView":29}],33:[function(require,module,exports){
 var $ = require('jquery');
 var Backbone = require('backbone');
 
@@ -14836,4 +14879,4 @@ app.appView.render();
 $(document.body).append(app.appView.$el);
 
 Backbone.history.start();
-},{"./components/App/AppRouter":5,"./components/App/appController":8,"backbone":1,"jquery":2}]},{},[36]);
+},{"./components/App/AppRouter":5,"./components/App/appController":8,"backbone":1,"jquery":2}]},{},[33]);

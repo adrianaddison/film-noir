@@ -1,13 +1,13 @@
 var app = require('../App/appController');
 
-var TVModel = require('./TVModel');
+var movieResources = require('../Movie/movieResources');
 
 var TVDetailView = require('./TVDetailView');
 
 module.exports = {
 
 	showTVDetails: function (id) {
-		var tv = new TVModel({ id: id });
+		var tv = new movieResources.TVModel({ id: id });
 		
 		tv.fetch({
 			success: function () {
