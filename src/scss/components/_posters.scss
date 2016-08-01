@@ -1,7 +1,6 @@
 .theatre {
 	color: $color-white;
-	text-align: center;
-	font-size: 24xpx;
+	font-size: 24px;
 	font-family: 'Noto Sans';
 }
 
@@ -25,4 +24,8 @@
 .movie-item {
 	list-style-type: none;
 	display: inline;
+}
+
+.movie-detal-title {
+	font-size: 24px;
 }
