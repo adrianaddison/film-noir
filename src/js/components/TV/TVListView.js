@@ -6,7 +6,7 @@ var TVListView = Backbone.View.extend({
 
 	tagName: 'ul',
 
-	className: 'now-airing-list',
+	className: 'credit-list',
 
 	initialize: function () {
 		this.collection.on('update', this.render.bind(this));

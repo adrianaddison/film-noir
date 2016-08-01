@@ -1,14 +1,14 @@
 var $ = require('jquery');
 var Backbone = require('backbone');
 
-var TVListView = require('../TV/TVListView');
+var PersonListView = require('../Person/PersonListView');
 
 var TVDetailView = Backbone.View.extend({
 	
 	className: 'tv-detail',
 
 	initialize: function (options) {
-		this.tvListView = new TVListView({
+		this.personListView = new PersonListView({
 			collection: this.model.credits
 		});
 		this.onSelect = options.onSelect;
@@ -18,20 +18,20 @@ var TVDetailView = Backbone.View.extend({
 	render: function () {
 		var _this = this.model
 		this.$el.html(this.template({
-			title: this.model.get('title'),
+			name: this.model.get('name'),
 			overview: this.model.get('overview'),
-			release_date: this.model.get('release_date')
+			first_air_date: this.model.get('first_air_date')
 		}));
-		this.tvListView.render();
-		this.$('.credits-region').append(this.tvListView.$el);
+		this.personListView.render();
+		this.$('.credits-region').append(this.personListView.$el);
 	},
 
 	template: function (data) {
 		return `
 			<div class=""></div>
-			<h2 class="tv-detal-title">${data.title}</h2>
+			<h2 class="tv-detail-name">${data.name}</h2>
 			<p>Overview: ${data.overview}</p>
-			<span>Release Date: ${data.release_date}</span>
+			<span>First Air Date: ${data.first_air_date}</span>
 			<div class="credits-region"></div>
 		`;
 	}

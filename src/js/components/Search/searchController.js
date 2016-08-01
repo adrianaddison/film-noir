@@ -1,9 +1,11 @@
 var app = require('../App/appController');
 
 var SearchCollection = require('./SearchCollection');
-var MovieModel = require('../Movie/MovieModel');
-var PersonModel = require('../Person/PersonModel');
-var TVModel = require('../TV/TVModel');
+var movieResources = require('../Movie/movieResources');
+
+var MovieModel = movieResources.MovieModel;
+var PersonModel = movieResources.PersonModel;
+var TVModel = movieResources.TVModel;
 
 var MovieListView = require('../Movie/MovieListView');
 var PersonListView = require('../Person/PersonListView');

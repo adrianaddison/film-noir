@@ -423,14 +423,11 @@ main {
 .main-small {
   padding-top: 160px; }
 
-.search,
-.search-small {
+.search {
   width: 100%;
   position: relative;
   margin: 0 auto;
-  height: 50px; }
-
-.search-small {
+  height: 50px;
   margin-top: 1em; }
 
 .search-icon,

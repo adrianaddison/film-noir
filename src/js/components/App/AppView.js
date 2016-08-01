@@ -4,7 +4,7 @@ var HeaderView = require('./HeaderView');
 
 module.exports = Backbone.View.extend({
 
-    tagName: 'main',
+    tagName: 'body',
 
     className: 'app',
 
@@ -22,7 +22,7 @@ module.exports = Backbone.View.extend({
     template: function () {
         return `
             <div class="header-region"></div>
-            <div class="page-region"></div>
+            <main class="page-region"></main>
         `;
     },
 

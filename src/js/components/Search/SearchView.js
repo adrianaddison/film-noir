@@ -8,8 +8,7 @@ module.exports = Backbone.View.extend({
 	className: 'search',
 
 	events: {
-		'click .search-button': 'handleSearchClick',
-		'keyup .search-for': 'handleSearchKeyup'
+		'click .search-box': 'handleSearchClick',
 	},
 
 	render: function () {
@@ -18,19 +17,15 @@ module.exports = Backbone.View.extend({
 
 	template: function () {
 		return `
-			<input class="search-for">
-			<button class="search-button">Search</button>		
+			<input class="search-box">
+			<img class="search-icon" src="img/search.png">		
 		`;
 	},
 
 	handleSearchClick: function () {
-		var query = this.$('.search-for').val();
+		var query = this.$('.search-box').val();
 		Backbone.history.navigate('search/' + query, { trigger: true });
-		this.$('.search-for').val('');
-	},
-
-	handleSearchKeyup: function () {
-
+		this.$('.search-box').val('');
 	},
 
 	open: function (onItemClick) {

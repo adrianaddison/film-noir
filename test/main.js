@@ -13624,9 +13624,14 @@ var Backbone = require('backbone');
 var api = require('../API/api');
 
 var MovieModel = require('../Movie/MovieModel');
+var TVModel = require('../TV/TVModel');
 
 var MovieCreditsCollection = Backbone.Collection.extend({
-    model: MovieModel
+    // model: MovieModel
+});
+
+var TVCreditsCollection = Backbone.Collection.extend({
+    model: TVModel
 });
 
 var PersonModel = Backbone.Model.extend({
@@ -13639,10 +13644,20 @@ var PersonModel = Backbone.Model.extend({
 
 	initialize: function () {
 		var _this = this;
-		this.movieCredits = new MovieCreditsCollection(this.get('movie_credits,tv_credits'));
+		var tvCredits = [];
+
+		if (this.get('tv_credits')) {
+			tvCredits = this.get('tv_credits').cast;
+		}
+
+		this.movieCredits = new MovieCreditsCollection();
+		// this.tvCredits = new TVCreditsCollection(tvCredits);
+
         this.on('sync', function () {
             // If the model is fetched, reset the models inside of the movie credits collection.
-            _this.movieCredits.reset(_this.get('movie_credits,tv_credits'));
+            console.log(_this.get('movie_credits').cast)
+            _this.movieCredits.reset(_this.get('movie_credits').cast);
+            // _this.tvCredits.reset(_this.get('tv_credits').cast);
         });
 	},
 
@@ -13664,7 +13679,7 @@ var PersonModel = Backbone.Model.extend({
 
 
 module.exports = PersonModel;
-},{"../API/api":4,"../Movie/MovieModel":5,"backbone":1}],7:[function(require,module,exports){
+},{"../API/api":4,"../Movie/MovieModel":5,"../TV/TVModel":7,"backbone":1}],7:[function(require,module,exports){
 var Backbone = require('backbone');
 
 var api = require('../API/api');
