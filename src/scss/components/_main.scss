@@ -1,7 +1,9 @@
 main {
 	padding-top: 368px;
+	height: 100vh;
+	overflow-y: auto;
 }
 
-#main-small {
-	padding-top: 150px;
+.main-small {
+	padding-top: 160px;
 }

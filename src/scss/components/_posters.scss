@@ -1,24 +1,34 @@
-#theatre {
+.theatre {
 	color: $color-white;
 	text-align: center;
-	font-size: 28px;
-	font-family: 'Ironick NF';
-	text-decoration: underline;
+	font-size: 24px;
+	font-family: 'Noto Sans';
 }
 
 .movie-poster {
 	height: 200px;
 	width: 40%;
 	text-align: center;
-	float: left;
 }
 
-.now-playing-region {
+.now-playing {
 	overflow-x: scroll;
+	margin: 0 auto;
 	white-space: nowrap;
 	list-style-type: none;
+	width: 100%;
+
+	ul {
+		margin: 0;
+		padding: 0;
+	}
+}
+
+.now-playing {
+	float: left;
 }
 
 .movie-item {
 	list-style-type: none;
+	display: inline;
 }

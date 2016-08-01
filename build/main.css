@@ -416,10 +416,12 @@ textarea {
   height: 40px; }
 
 main {
-  padding-top: 368px; }
+  padding-top: 368px;
+  height: 100vh;
+  overflow-y: auto; }
 
-#main-small {
-  padding-top: 150px; }
+.main-small {
+  padding-top: 160px; }
 
 .search,
 .search-small {
@@ -474,26 +476,33 @@ main {
 .voice-icon {
   height: 20px; }
 
-#theatre {
+.theatre {
   color: #D3D3D3;
   text-align: center;
-  font-size: 28px;
-  font-family: 'Ironick NF';
-  text-decoration: underline; }
+  font-size: 24px;
+  font-family: 'Noto Sans'; }
 
 .movie-poster {
   height: 200px;
   width: 40%;
-  text-align: center;
+  text-align: center; }
+
+.now-playing {
+  overflow-x: scroll;
+  margin: 0 auto;
+  white-space: nowrap;
+  list-style-type: none;
+  width: 100%; }
+  .now-playing ul {
+    margin: 0;
+    padding: 0; }
+
+.now-playing {
   float: left; }
 
-.now-playing-region {
-  overflow-x: scroll;
-  white-space: nowrap;
-  list-style-type: none; }
-
 .movie-item {
-  list-style-type: none; }
+  list-style-type: none;
+  display: inline; }
 
 *, *:before, *:after {
   box-sizing: border-box; }
@@ -506,8 +515,7 @@ body {
 h3 {
   padding-left: 10%;
   color: #D3D3D3;
-  font-family: 'Ironick NF';
-  font-size: 24px;
-  text-decoration: underline; }
+  font-size: 22px;
+  font-family: "Noto Sans"; }
 
 /*# sourceMappingURL=main.css.map */
