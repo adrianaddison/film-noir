@@ -423,14 +423,11 @@ main {
 .main-small {
   padding-top: 160px; }
 
-.search,
-.search-small {
+.search {
   width: 100%;
   position: relative;
   margin: 0 auto;
-  height: 50px; }
-
-.search-small {
+  height: 50px;
   margin-top: 1em; }
 
 .search-icon,
@@ -439,7 +436,8 @@ main {
   top: 0; }
 
 .search-box {
-  left: 0; }
+  left: 0;
+  color: #C0C0C0; }
 
 .search-icon {
   height: 24px;
@@ -479,7 +477,7 @@ main {
 .theatre {
   color: #D3D3D3;
   text-align: center;
-  font-size: 24px;
+  font-size: 24xpx;
   font-family: 'Noto Sans'; }
 
 .movie-poster {

@@ -1,12 +1,8 @@
-.search,
-.search-small {
+.search {
 	width: 100%;
 	position: relative;
 	margin: 0 auto;
 	height: 50px;
-}
-
-.search-small {
 	margin-top: 1em;
 }
 
@@ -18,6 +14,7 @@
 
 .search-box {
 	left: 0;
+	color: $color-grey;
 }
 
 .search-icon {
