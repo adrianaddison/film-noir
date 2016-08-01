@@ -34,7 +34,7 @@ var PersonDetailView = Backbone.View.extend({
 
 	template: function (data) {
 		return `
-			<img src="${data.profile}">
+			<img class="actor-img"src="${data.profile}">
 			<h2 class="person-detail-name">${data.name}</h2>
 			<p>Biography: ${data.biography}</p>
 			<h2>Movie Credits</h2>

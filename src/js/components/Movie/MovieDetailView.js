@@ -32,7 +32,9 @@ var MovieDetailView = Backbone.View.extend({
 			<img class="movie-poster" src="${data.poster}">
 			<p>Overview: ${data.overview}</p>
 			<span>Release Date: ${data.release_date}</span>
-			<div class="credits-region"></div>
+			<div class="credits-region">
+				<h2>Cast</2>
+			</div>
 		`;
 	}
 

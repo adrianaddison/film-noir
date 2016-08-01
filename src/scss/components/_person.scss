@@ -1,27 +1,34 @@
-.person-detail {
-	> img {
-		display: block;
-		margin: 0 auto;
-		height: 300px;
-	}
-}
-
-.person-detail-name {
-	font-size: 30px;
-}
-
 .person-item {
-	list-style-type: none;
-	padding-bottom: 10px;
-
-	> img {
-	display: block;
-	margin: 0 auto;
-	height: 300px;
-	}
+	padding-bottom: 5px;
 
 	> div {
 		text-align: center;
 		padding-top: 10px;
 	}
+}
+
+.person-list {
+	padding: 0;
+	margin: 0;
+}
+
+.person-list:after {
+	content: '';
+	display: block;
+	clear: both;
+}
+
+.person-item {
+	display: inline-block;
+	width: 50%;
+	padding: 5%;
+}
+
+.person-profile {
+	width: 100%;
+}
+
+.actor-img {
+	height: 300px;
+
 }

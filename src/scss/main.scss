@@ -10,6 +10,7 @@
 @import 'components/posters';
 @import 'components/person';
 @import 'components/movie';
+@import 'components/tv';
 
 *, *:before, *:after {
 	box-sizing: border-box;
@@ -30,5 +31,10 @@ h3 {
 
 h2 {
 	font-size: 19px;
-	font-family: 'Noto Sans'
+	font-family: 'Noto Sans';
+	color: $color-grey;
+}
+
+ul {
+	list-style-type: none; 
 }

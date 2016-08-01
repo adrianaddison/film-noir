@@ -14049,7 +14049,9 @@ var MovieDetailView = Backbone.View.extend({
 			<img class="movie-poster" src="${data.poster}">
 			<p>Overview: ${data.overview}</p>
 			<span>Release Date: ${data.release_date}</span>
-			<div class="credits-region"></div>
+			<div class="credits-region">
+				<h2>Cast</2>
+			</div>
 		`;
 	}
 
@@ -14383,7 +14385,7 @@ var PersonDetailView = Backbone.View.extend({
 
 	template: function (data) {
 		return `
-			<img src="${data.profile}">
+			<img class="actor-img"src="${data.profile}">
 			<h2 class="person-detail-name">${data.name}</h2>
 			<p>Biography: ${data.biography}</p>
 			<h2>Movie Credits</h2>
@@ -14763,7 +14765,9 @@ var TVDetailView = Backbone.View.extend({
 			<img class="movie-poster" src="${data.poster}">
 			<p>Overview: ${data.overview}</p>
 			<span>First Air Date: ${data.first_air_date}</span>
-			<div class="credits-region"></div>
+			<div class="credits-region">
+				<h2>Cast</h2>
+			</div>
 		`;
 	}
 

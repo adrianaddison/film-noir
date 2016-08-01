@@ -502,24 +502,31 @@ textarea {
 .movie-detal-title {
   font-size: 24px; }
 
-.person-detail > img {
-  display: block;
-  margin: 0 auto;
-  height: 300px; }
-
-.person-detail-name {
-  font-size: 30px; }
-
 .person-item {
-  list-style-type: none;
-  padding-bottom: 10px; }
-  .person-item > img {
-    display: block;
-    margin: 0 auto;
-    height: 300px; }
+  padding-bottom: 5px; }
   .person-item > div {
     text-align: center;
     padding-top: 10px; }
+
+.person-list {
+  padding: 0;
+  margin: 0; }
+
+.person-list:after {
+  content: '';
+  display: block;
+  clear: both; }
+
+.person-item {
+  display: inline-block;
+  width: 50%;
+  padding: 5%; }
+
+.person-profile {
+  width: 100%; }
+
+.actor-img {
+  height: 300px; }
 
 .movie-list {
   padding: 0;
@@ -538,6 +545,23 @@ textarea {
 .movie-poster {
   width: 100%; }
 
+.credit-list {
+  padding: 0;
+  margin: 0; }
+
+.credit-list:after {
+  content: '';
+  display: block;
+  clear: both; }
+
+.tv-item {
+  display: inline-block;
+  width: 50%;
+  padding: 5%; }
+
+.tv-poster {
+  width: 100%; }
+
 *, *:before, *:after {
   box-sizing: border-box; }
 
@@ -554,6 +578,10 @@ h3 {
 
 h2 {
   font-size: 19px;
-  font-family: "Noto Sans"; }
+  font-family: 'Noto Sans';
+  color: #C0C0C0; }
+
+ul {
+  list-style-type: none; }
 
 /*# sourceMappingURL=main.css.map */
