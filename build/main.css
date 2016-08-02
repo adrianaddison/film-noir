@@ -4,6 +4,7 @@
  * 2. Correct the line height in all browsers.
  * 3. Prevent adjustments of font size after orientation changes in IE and iOS.
  */
+@import url(https://fonts.googleapis.com/css?family=Noto+Sans);
 html {
   font-family: sans-serif;
   /* 1 */
@@ -479,8 +480,9 @@ textarea {
 
 .theatre {
   color: #D3D3D3;
-  font-size: 24px;
-  font-family: 'Noto Sans'; }
+  font-size: 22px;
+  font-family: 'Noto Sans';
+  text-align: center; }
 
 .now-playing {
   overflow-x: scroll;
@@ -562,6 +564,9 @@ textarea {
 .tv-poster {
   width: 100%; }
 
+@font-face {
+  font-family: 'Inronick NF';
+  src: url("font/IronickNF.ttf"); }
 *, *:before, *:after {
   box-sizing: border-box; }
 

@@ -26,7 +26,7 @@ module.exports = Backbone.View.extend({
 
     template: function (data) {
         return `
-            <h3>In Theaters Now</h3>
+            <h3 class="theatre">In Theaters Now</h3>
             <div class="now-playing-region"></div>
         `;
     }

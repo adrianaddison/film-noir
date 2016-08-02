@@ -12,6 +12,13 @@
 @import 'components/movie';
 @import 'components/tv';
 
+@import url(https://fonts.googleapis.com/css?family=Noto+Sans);
+
+@font-face {
+	font-family: 'Inronick NF';
+	src: url('font/IronickNF.ttf')
+}
+
 *, *:before, *:after {
 	box-sizing: border-box;
 }
