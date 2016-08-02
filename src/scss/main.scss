@@ -37,9 +37,10 @@ h3 {
 }
 
 h2 {
-	font-size: 19px;
+	font-size: 16px;
 	font-family: 'Noto Sans';
-	color: $color-grey;
+	color: $color-white;
+	text-align: center;
 }
 
 ul {
@@ -49,4 +50,5 @@ ul {
 p {
 	line-height: 1.4;
 	font-family: 'Noto Sans';
+	color: $color-grey;
 }
