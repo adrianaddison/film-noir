@@ -565,7 +565,7 @@ textarea {
   width: 100%; }
 
 @font-face {
-  font-family: 'Inronick NF';
+  font-family: 'Ironick NF';
   src: url("font/IronickNF.ttf"); }
 *, *:before, *:after {
   box-sizing: border-box; }
