@@ -1,6 +1,10 @@
+var $ = require('jquery');
+
+var api = require('../API/api');
 var app = require('../App/appController');
 
 var SearchCollection = require('./SearchCollection');
+var DiscoverCollection = require('./DiscoverCollection');
 var movieResources = require('../Movie/movieResources');
 
 var MovieModel = movieResources.MovieModel;
@@ -72,46 +76,87 @@ module.exports = {
 		);
 	},
 
-	voiceSearch: function (title, actor, year, genre, tv) {
+	voiceSearch: function (title, actor, year, genre) {
 		var criteriaCount = 0;
 		var finishedRequests = 0;
+
+		console.log(title, actor, year, genre);
+
+		var movieResults = new DiscoverCollection([], {
+			model: MovieModel,
+			category: 'movie'
+		});
+
+		var movieSearchResultsView = new SearchResultsView({
+			collection: movieResults,
+			title: 'Movies',
+			listView: MovieListView
+		});
+
+		var actorId;
+		var movieId;
+		var genreId;
 
 		function done () {
 			finishedRequests++;
 			if (criteriaCount === finishedRequests) {
-				// Do the /discovery request with the IDs
-				// once all of the initial requests have
-				// finished.
+				movieResults.fetch({
+					data: {
+						with_cast: actorId,
+						with_genres: genreId,
+						year: year
+					}
+				});
 			}
 		}
 
 		if (title) {
 			criteriaCount++;
-			if (tv) {
-				// Make a request to get tv id
-			} else {
-				// Make a request to get movie id
-			}
+			$.ajax({
+				url: api.url('search/movie'),
+				data: {
+					query: title
+				},
+				success: function (response) {
+					movieId = response.results[0].id;
+					done();
+				}
+			});
 		}
 
 		if (actor) {
 			criteriaCount++;
+			$.ajax({
+				url: api.url('search/person'),
+				data: {
+					query: actor
+				},
+				success: function (response) {
+					actorId = response.results[0].id;
+					done();
+				}
+			});
 			// Make a request to get actor id
 		}
 
 		if (genre) {
 			criteriaCount++;
+			$.ajax({
+				url: api.url('genre/movie/list'),
+				data: {
+					query: actor
+				},
+				success: function (response) {
+					var genreObj = response.genres.find(function (obj) {
+						return obj.name.toLowerCase() === genre.toLowerCase();
+					});
+					genreId = genreObj.id;
+					done();
+				}
+			});
 			// Make a request to get genre id
 		}
 
-		if (year) {
-
-		}
-
-		console.log('Title: ' + title);
-		console.log('Actors: ' + actor);
-		console.log('Years: ' + year);
-		console.log('Genres: ' + genre);
-		console.log('TV: ' + tv);
+		app.showPage(movieSearchResultsView);
 	}
 };

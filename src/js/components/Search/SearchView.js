@@ -3,12 +3,22 @@
 
 var Backbone = require('backbone');
 
+var annyang = require('annyang');
+
+var commands = require('./commands');
+
 module.exports = Backbone.View.extend({
 
 	className: 'search',
 
 	events: {
-		'click .search-box': 'handleSearchClick',
+		'click .search-icon': 'handleSearchClick',
+	},
+
+	initialize: function () {
+		annyang.addCommands(commands);
+		annyang.start();
+		annyang.debug();
 	},
 
 	render: function () {

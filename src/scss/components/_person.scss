@@ -3,7 +3,6 @@
 
 	> div {
 		text-align: center;
-		padding-top: 10px;
 	}
 }
 
@@ -20,15 +19,22 @@
 
 .person-item {
 	display: inline-block;
+	vertical-align: top;
 	width: 50%;
 	padding: 5%;
 }
 
 .person-profile {
+	background-size: cover;
+	padding-top: 130%;
 	width: 100%;
+	margin-bottom: 1em;
 }
 
 .actor-img {
-	height: 300px;
-
+	border: solid 4px $color-grey;
+	box-shadow: 0 5px 5px rgba(0,0,0,0.5);
+	background-size: cover;
+	padding-top: 110%;
+	width: 100%;
 }

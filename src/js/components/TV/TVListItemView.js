@@ -23,7 +23,7 @@ var TVListItemView = Backbone.View.extend({
 
 	template: function (data) {
 		return `
-			<img class="tv-poster" src="${data.poster}">
+			<div class="tv-poster" style="background-image: url(${data.poster})"></div>
 		`;
 	},
 

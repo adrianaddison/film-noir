@@ -16,7 +16,7 @@ module.exports = Backbone.Router.extend({
         'logout': 'logout',
         'register': 'register',
         'home': 'home',
-        'search/voice/(:titles),(:actors),(:years),(:genres),(:tv)': 'voiceSearch',
+        'search/voice/t-(:titles),a-(:actors),y-(:years),g-(:genres)': 'voiceSearch',
         'search/:query': 'search', // e.g. search/tarzan
         // e.g.
         //  #/search/tarzan,,70,true
@@ -28,7 +28,7 @@ module.exports = Backbone.Router.extend({
 
     initialize: function() {
         this.on('route', function() {
-            $('html, body').animate({ scrollTop: 0 });
+            $('body').animate({ scrollTop: 0 });
         });
     },
 
@@ -69,8 +69,8 @@ module.exports = Backbone.Router.extend({
         search.search(query);
     },
 
-    voiceSearch: function (title, actors, years, genres, tv) {
+    voiceSearch: function (title, actors, years, genres) {
         auth.check();
-        search.voiceSearch(title, actors, years, genres, tv);
+        search.voiceSearch(title, actors, years, genres);
     }
 });

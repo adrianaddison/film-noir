@@ -13591,6 +13591,11 @@ var MovieModel = Backbone.Model.extend({
 
     getMoviePoster: function () {
         var poster = this.get('poster_path');
+
+        if (poster === null) {
+            return 'img/default-poster.png';
+        }
+
         var image = api.imageUrl(poster);
 
         return image;
@@ -13632,7 +13637,13 @@ var PersonModel = Backbone.Model.extend({
 	},
 
 	getProfile: function () {
-		return api.imageUrl(this.get('profile_path'));
+        var profile = this.get('profile_path');
+
+        if (profile === null) {
+            return 'img/default-profile.png';
+        }
+
+		return api.imageUrl(profile);
 	},
 
 	fetch: function (options) {
@@ -13666,6 +13677,11 @@ var TVModel = Backbone.Model.extend({
 
     getMoviePoster: function () {
         var poster = this.get('poster_path');
+
+        if (poster === null) {
+            return 'img/default-poster.png';
+        }
+
         var image = api.imageUrl(poster);
 
         return image;

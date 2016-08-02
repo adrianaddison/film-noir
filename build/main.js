@@ -1,4 +1,773 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+//! annyang
+//! version : 2.4.0
+//! author  : Tal Ater @TalAter
+//! license : MIT
+//! https://www.TalAter.com/annyang/
+(function (root, factory) {
+  "use strict";
+  if (typeof define === 'function' && define.amd) { // AMD + global
+    define([], function () {
+      return (root.annyang = factory(root));
+    });
+  } else if (typeof module === 'object' && module.exports) { // CommonJS
+    module.exports = factory(root);
+  } else { // Browser globals
+    root.annyang = factory(root);
+  }
+}(typeof window !== 'undefined' ? window : this, function (root, undefined) {
+  "use strict";
+
+  /**
+   * # Quick Tutorial, Intro and Demos
+   *
+   * The quickest way to get started is to visit the [annyang homepage](https://www.talater.com/annyang/).
+   *
+   * For a more in-depth look at annyang, read on.
+   *
+   * # API Reference
+   */
+
+  var annyang;
+
+  // Get the SpeechRecognition object, while handling browser prefixes
+  var SpeechRecognition = root.SpeechRecognition ||
+                          root.webkitSpeechRecognition ||
+                          root.mozSpeechRecognition ||
+                          root.msSpeechRecognition ||
+                          root.oSpeechRecognition;
+
+  // Check browser support
+  // This is done as early as possible, to make it as fast as possible for unsupported browsers
+  if (!SpeechRecognition) {
+    return null;
+  }
+
+  var commandsList = [];
+  var recognition;
+  var callbacks = { start: [], error: [], end: [], result: [], resultMatch: [], resultNoMatch: [], errorNetwork: [], errorPermissionBlocked: [], errorPermissionDenied: [] };
+  var autoRestart;
+  var lastStartedAt = 0;
+  var debugState = false;
+  var debugStyle = 'font-weight: bold; color: #00f;';
+  var pauseListening = false;
+  var isListening = false;
+
+  // The command matching code is a modified version of Backbone.Router by Jeremy Ashkenas, under the MIT license.
+  var optionalParam = /\s*\((.*?)\)\s*/g;
+  var optionalRegex = /(\(\?:[^)]+\))\?/g;
+  var namedParam    = /(\(\?)?:\w+/g;
+  var splatParam    = /\*\w+/g;
+  var escapeRegExp  = /[\-{}\[\]+?.,\\\^$|#]/g;
+  var commandToRegExp = function(command) {
+    command = command.replace(escapeRegExp, '\\$&')
+                  .replace(optionalParam, '(?:$1)?')
+                  .replace(namedParam, function(match, optional) {
+                    return optional ? match : '([^\\s]+)';
+                  })
+                  .replace(splatParam, '(.*?)')
+                  .replace(optionalRegex, '\\s*$1?\\s*');
+    return new RegExp('^' + command + '$', 'i');
+  };
+
+  // This method receives an array of callbacks to iterate over, and invokes each of them
+  var invokeCallbacks = function(callbacks) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    callbacks.forEach(function(callback) {
+      callback.callback.apply(callback.context, args);
+    });
+  };
+
+  var isInitialized = function() {
+    return recognition !== undefined;
+  };
+
+  var initIfNeeded = function() {
+    if (!isInitialized()) {
+      annyang.init({}, false);
+    }
+  };
+
+  var registerCommand = function(command, cb, phrase) {
+    commandsList.push({ command: command, callback: cb, originalPhrase: phrase });
+    if (debugState) {
+      console.log('Command successfully loaded: %c'+phrase, debugStyle);
+    }
+  };
+
+  var parseResults = function(results) {
+    invokeCallbacks(callbacks.result, results);
+    var commandText;
+    // go over each of the 5 results and alternative results received (we've set maxAlternatives to 5 above)
+    for (var i = 0; i<results.length; i++) {
+      // the text recognized
+      commandText = results[i].trim();
+      if (debugState) {
+        console.log('Speech recognized: %c'+commandText, debugStyle);
+      }
+
+      // try and match recognized text to one of the commands on the list
+      for (var j = 0, l = commandsList.length; j < l; j++) {
+        var currentCommand = commandsList[j];
+        var result = currentCommand.command.exec(commandText);
+        if (result) {
+          var parameters = result.slice(1);
+          if (debugState) {
+            console.log('command matched: %c'+currentCommand.originalPhrase, debugStyle);
+            if (parameters.length) {
+              console.log('with parameters', parameters);
+            }
+          }
+          // execute the matched command
+          currentCommand.callback.apply(this, parameters);
+          invokeCallbacks(callbacks.resultMatch, commandText, currentCommand.originalPhrase, results);
+          return;
+        }
+      }
+    }
+    invokeCallbacks(callbacks.resultNoMatch, results);
+  };
+
+  annyang = {
+
+    /**
+     * Initialize annyang with a list of commands to recognize.
+     *
+     * #### Examples:
+     * ````javascript
+     * var commands = {'hello :name': helloFunction};
+     * var commands2 = {'hi': helloFunction};
+     *
+     * // initialize annyang, overwriting any previously added commands
+     * annyang.init(commands, true);
+     * // adds an additional command without removing the previous commands
+     * annyang.init(commands2, false);
+     * ````
+     * As of v1.1.0 it is no longer required to call init(). Just start() listening whenever you want, and addCommands() whenever, and as often as you like.
+     *
+     * @param {Object} commands - Commands that annyang should listen to
+     * @param {boolean} [resetCommands=true] - Remove all commands before initializing?
+     * @method init
+     * @deprecated
+     * @see [Commands Object](#commands-object)
+     */
+    init: function(commands, resetCommands) {
+
+      // resetCommands defaults to true
+      if (resetCommands === undefined) {
+        resetCommands = true;
+      } else {
+        resetCommands = !!resetCommands;
+      }
+
+      // Abort previous instances of recognition already running
+      if (recognition && recognition.abort) {
+        recognition.abort();
+      }
+
+      // initiate SpeechRecognition
+      recognition = new SpeechRecognition();
+
+      // Set the max number of alternative transcripts to try and match with a command
+      recognition.maxAlternatives = 5;
+
+      // In HTTPS, turn off continuous mode for faster results.
+      // In HTTP,  turn on  continuous mode for much slower results, but no repeating security notices
+      recognition.continuous = root.location.protocol === 'http:';
+
+      // Sets the language to the default 'en-US'. This can be changed with annyang.setLanguage()
+      recognition.lang = 'en-US';
+
+      recognition.onstart   = function() {
+        isListening = true;
+        invokeCallbacks(callbacks.start);
+      };
+
+      recognition.onerror   = function(event) {
+        invokeCallbacks(callbacks.error);
+        switch (event.error) {
+        case 'network':
+          invokeCallbacks(callbacks.errorNetwork);
+          break;
+        case 'not-allowed':
+        case 'service-not-allowed':
+          // if permission to use the mic is denied, turn off auto-restart
+          autoRestart = false;
+          // determine if permission was denied by user or automatically.
+          if (new Date().getTime()-lastStartedAt < 200) {
+            invokeCallbacks(callbacks.errorPermissionBlocked);
+          } else {
+            invokeCallbacks(callbacks.errorPermissionDenied);
+          }
+          break;
+        }
+      };
+
+      recognition.onend     = function() {
+        isListening = false;
+        invokeCallbacks(callbacks.end);
+        // annyang will auto restart if it is closed automatically and not by user action.
+        if (autoRestart) {
+          // play nicely with the browser, and never restart annyang automatically more than once per second
+          var timeSinceLastStart = new Date().getTime()-lastStartedAt;
+          if (timeSinceLastStart < 1000) {
+            setTimeout(annyang.start, 1000-timeSinceLastStart);
+          } else {
+            annyang.start();
+          }
+        }
+      };
+
+      recognition.onresult  = function(event) {
+        if(pauseListening) {
+          if (debugState) {
+            console.log('Speech heard, but annyang is paused');
+          }
+          return false;
+        }
+
+        // Map the results to an array
+        var SpeechRecognitionResult = event.results[event.resultIndex];
+        var results = [];
+        for (var k = 0; k<SpeechRecognitionResult.length; k++) {
+          results[k] = SpeechRecognitionResult[k].transcript;
+        }
+
+        parseResults(results);
+      };
+
+      // build commands list
+      if (resetCommands) {
+        commandsList = [];
+      }
+      if (commands.length) {
+        this.addCommands(commands);
+      }
+    },
+
+    /**
+     * Start listening.
+     * It's a good idea to call this after adding some commands first, but not mandatory.
+     *
+     * Receives an optional options object which supports the following options:
+     *
+     * - `autoRestart` (boolean, default: true) Should annyang restart itself if it is closed indirectly, because of silence or window conflicts?
+     * - `continuous`  (boolean, default: undefined) Allow forcing continuous mode on or off. Annyang is pretty smart about this, so only set this if you know what you're doing.
+     *
+     * #### Examples:
+     * ````javascript
+     * // Start listening, don't restart automatically
+     * annyang.start({ autoRestart: false });
+     * // Start listening, don't restart automatically, stop recognition after first phrase recognized
+     * annyang.start({ autoRestart: false, continuous: false });
+     * ````
+     * @param {Object} [options] - Optional options.
+     * @method start
+     */
+    start: function(options) {
+      pauseListening = false;
+      initIfNeeded();
+      options = options || {};
+      if (options.autoRestart !== undefined) {
+        autoRestart = !!options.autoRestart;
+      } else {
+        autoRestart = true;
+      }
+      if (options.continuous !== undefined) {
+        recognition.continuous = !!options.continuous;
+      }
+
+      lastStartedAt = new Date().getTime();
+      try {
+        recognition.start();
+      } catch(e) {
+        if (debugState) {
+          console.log(e.message);
+        }
+      }
+    },
+
+    /**
+     * Stop listening, and turn off mic.
+     *
+     * Alternatively, to only temporarily pause annyang responding to commands without stopping the SpeechRecognition engine or closing the mic, use pause() instead.
+     * @see [pause()](#pause)
+     *
+     * @method abort
+     */
+    abort: function() {
+      autoRestart = false;
+      if (isInitialized()) {
+        recognition.abort();
+      }
+    },
+
+    /**
+     * Pause listening. annyang will stop responding to commands (until the resume or start methods are called), without turning off the browser's SpeechRecognition engine or the mic.
+     *
+     * Alternatively, to stop the SpeechRecognition engine and close the mic, use abort() instead.
+     * @see [abort()](#abort)
+     *
+     * @method pause
+     */
+    pause: function() {
+      pauseListening = true;
+    },
+
+    /**
+     * Resumes listening and restores command callback execution when a result matches.
+     * If SpeechRecognition was aborted (stopped), start it.
+     *
+     * @method resume
+     */
+    resume: function() {
+      annyang.start();
+    },
+
+    /**
+     * Turn on output of debug messages to the console. Ugly, but super-handy!
+     *
+     * @param {boolean} [newState=true] - Turn on/off debug messages
+     * @method debug
+     */
+    debug: function(newState) {
+      if (arguments.length > 0) {
+        debugState = !!newState;
+      } else {
+        debugState = true;
+      }
+    },
+
+    /**
+     * Set the language the user will speak in. If this method is not called, defaults to 'en-US'.
+     *
+     * @param {String} language - The language (locale)
+     * @method setLanguage
+     * @see [Languages](#languages)
+     */
+    setLanguage: function(language) {
+      initIfNeeded();
+      recognition.lang = language;
+    },
+
+    /**
+     * Add commands that annyang will respond to. Similar in syntax to init(), but doesn't remove existing commands.
+     *
+     * #### Examples:
+     * ````javascript
+     * var commands = {'hello :name': helloFunction, 'howdy': helloFunction};
+     * var commands2 = {'hi': helloFunction};
+     *
+     * annyang.addCommands(commands);
+     * annyang.addCommands(commands2);
+     * // annyang will now listen to all three commands
+     * ````
+     *
+     * @param {Object} commands - Commands that annyang should listen to
+     * @method addCommands
+     * @see [Commands Object](#commands-object)
+     */
+    addCommands: function(commands) {
+      var cb;
+
+      initIfNeeded();
+
+      for (var phrase in commands) {
+        if (commands.hasOwnProperty(phrase)) {
+          cb = root[commands[phrase]] || commands[phrase];
+          if (typeof cb === 'function') {
+            // convert command to regex then register the command
+            registerCommand(commandToRegExp(phrase), cb, phrase);
+          } else if (typeof cb === 'object' && cb.regexp instanceof RegExp) {
+            // register the command
+            registerCommand(new RegExp(cb.regexp.source, 'i'), cb.callback, phrase);
+          } else {
+            if (debugState) {
+              console.log('Can not register command: %c'+phrase, debugStyle);
+            }
+            continue;
+          }
+        }
+      }
+    },
+
+    /**
+     * Remove existing commands. Called with a single phrase, array of phrases, or methodically. Pass no params to remove all commands.
+     *
+     * #### Examples:
+     * ````javascript
+     * var commands = {'hello': helloFunction, 'howdy': helloFunction, 'hi': helloFunction};
+     *
+     * // Remove all existing commands
+     * annyang.removeCommands();
+     *
+     * // Add some commands
+     * annyang.addCommands(commands);
+     *
+     * // Don't respond to hello
+     * annyang.removeCommands('hello');
+     *
+     * // Don't respond to howdy or hi
+     * annyang.removeCommands(['howdy', 'hi']);
+     * ````
+     * @param {String|Array|Undefined} [commandsToRemove] - Commands to remove
+     * @method removeCommands
+     */
+    removeCommands: function(commandsToRemove) {
+      if (commandsToRemove === undefined) {
+        commandsList = [];
+        return;
+      }
+      commandsToRemove = Array.isArray(commandsToRemove) ? commandsToRemove : [commandsToRemove];
+      commandsList = commandsList.filter(function(command) {
+        for (var i = 0; i<commandsToRemove.length; i++) {
+          if (commandsToRemove[i] === command.originalPhrase) {
+            return false;
+          }
+        }
+        return true;
+      });
+    },
+
+    /**
+     * Add a callback function to be called in case one of the following events happens:
+     *
+     * * `start` - Fired as soon as the browser's Speech Recognition engine starts listening
+     * * `error` - Fired when the browser's Speech Recogntion engine returns an error, this generic error callback will be followed by more accurate error callbacks (both will fire if both are defined)
+     * * `errorNetwork` - Fired when Speech Recognition fails because of a network error
+     * * `errorPermissionBlocked` - Fired when the browser blocks the permission request to use Speech Recognition.
+     * * `errorPermissionDenied` - Fired when the user blocks the permission request to use Speech Recognition.
+     * * `end` - Fired when the browser's Speech Recognition engine stops
+     * * `result` - Fired as soon as some speech was identified. This generic callback will be followed by either the `resultMatch` or `resultNoMatch` callbacks.
+     *     Callback functions registered to this event will include an array of possible phrases the user said as the first argument
+     * * `resultMatch` - Fired when annyang was able to match between what the user said and a registered command
+     *     Callback functions registered to this event will include three arguments in the following order:
+     *       * The phrase the user said that matched a command
+     *       * The command that was matched
+     *       * An array of possible alternative phrases the user might've said
+     * * `resultNoMatch` - Fired when what the user said didn't match any of the registered commands.
+     *     Callback functions registered to this event will include an array of possible phrases the user might've said as the first argument
+     *
+     * #### Examples:
+     * ````javascript
+     * annyang.addCallback('error', function() {
+     *   $('.myErrorText').text('There was an error!');
+     * });
+     *
+     * annyang.addCallback('resultMatch', function(userSaid, commandText, phrases) {
+     *   console.log(userSaid); // sample output: 'hello'
+     *   console.log(commandText); // sample output: 'hello (there)'
+     *   console.log(phrases); // sample output: ['hello', 'halo', 'yellow', 'polo', 'hello kitty']
+     * });
+     *
+     * // pass local context to a global function called notConnected
+     * annyang.addCallback('errorNetwork', notConnected, this);
+     * ````
+     * @param {String} type - Name of event that will trigger this callback
+     * @param {Function} callback - The function to call when event is triggered
+     * @param {Object} [context] - Optional context for the callback function
+     * @method addCallback
+     */
+    addCallback: function(type, callback, context) {
+      if (callbacks[type]  === undefined) {
+        return;
+      }
+      var cb = root[callback] || callback;
+      if (typeof cb !== 'function') {
+        return;
+      }
+      callbacks[type].push({callback: cb, context: context || this});
+    },
+
+    /**
+     * Remove callbacks from events.
+     *
+     * - Pass an event name and a callback command to remove that callback command from that event type.
+     * - Pass just an event name to remove all callback commands from that event type.
+     * - Pass undefined as event name and a callback command to remove that callback command from all event types.
+     * - Pass no params to remove all callback commands from all event types.
+     *
+     * #### Examples:
+     * ````javascript
+     * annyang.addCallback('start', myFunction1);
+     * annyang.addCallback('start', myFunction2);
+     * annyang.addCallback('end', myFunction1);
+     * annyang.addCallback('end', myFunction2);
+     *
+     * // Remove all callbacks from all events:
+     * annyang.removeCallback();
+     *
+     * // Remove all callbacks attached to end event:
+     * annyang.removeCallback('end');
+     *
+     * // Remove myFunction2 from being called on start:
+     * annyang.removeCallback('start', myFunction2);
+     *
+     * // Remove myFunction1 from being called on all events:
+     * annyang.removeCallback(undefined, myFunction1);
+     * ````
+     *
+     * @param type Name of event type to remove callback from
+     * @param callback The callback function to remove
+     * @returns undefined
+     * @method removeCallback
+     */
+    removeCallback: function(type, callback) {
+      var compareWithCallbackParameter = function(cb) {
+        return cb.callback !== callback;
+      };
+      // Go over each callback type in callbacks store object
+      for (var callbackType in callbacks) {
+        if (callbacks.hasOwnProperty(callbackType)) {
+          // if this is the type user asked to delete, or he asked to delete all, go ahead.
+          if (type === undefined || type === callbackType) {
+            // If user asked to delete all callbacks in this type or all types
+            if (callback === undefined) {
+                callbacks[callbackType] = [];
+              } else {
+                // Remove all matching callbacks
+                callbacks[callbackType] = callbacks[callbackType].filter(compareWithCallbackParameter);
+            }
+          }
+        }
+      }
+    },
+
+    /**
+     * Returns true if speech recognition is currently on.
+     * Returns false if speech recognition is off or annyang is paused.
+     *
+     * @return boolean true = SpeechRecognition is on and annyang is listening
+     * @method isListening
+     */
+    isListening: function() {
+      return isListening && !pauseListening;
+    },
+
+    /**
+     * Returns the instance of the browser's SpeechRecognition object used by annyang.
+     * Useful in case you want direct access to the browser's Speech Recognition engine.
+     *
+     * @returns SpeechRecognition The browser's Speech Recognizer currently used by annyang
+     * @method getSpeechRecognizer
+     */
+    getSpeechRecognizer: function() {
+      return recognition;
+    },
+
+    /**
+     * Simulate speech being recognized. This will trigger the same events and behavior as when the Speech Recognition
+     * detects speech.
+     *
+     * Can accept either a string containing a single sentence, or an array containing multiple sentences to be checked
+     * in order until one of them matches a command (similar to the way Speech Recognition Alternatives are parsed)
+     *
+     * #### Examples:
+     * ````javascript
+     * annyang.trigger('Time for some thrilling heroics');
+     * annyang.trigger(
+     *     ['Time for some thrilling heroics', 'Time for some thrilling aerobics']
+     *   );
+     * ````
+     *
+     * @param string|array sentences A sentence as a string or an array of strings of possible sentences
+     * @returns undefined
+     * @method trigger
+     */
+    trigger: function(sentences) {
+      if(!annyang.isListening()) {
+        if (debugState) {
+          if (!isListening) {
+            console.log('Cannot trigger while annyang is aborted');
+          } else {
+            console.log('Speech heard, but annyang is paused');
+          }
+        }
+        return;
+      }
+
+      if (!Array.isArray(sentences)) {
+        sentences = [sentences];
+      }
+
+      parseResults(sentences);
+    }
+  };
+
+  return annyang;
+
+}));
+
+/**
+ * # Good to Know
+ *
+ * ## Commands Object
+ *
+ * Both the [init()]() and addCommands() methods receive a `commands` object.
+ *
+ * annyang understands commands with `named variables`, `splats`, and `optional words`.
+ *
+ * * Use `named variables` for one word arguments in your command.
+ * * Use `splats` to capture multi-word text at the end of your command (greedy).
+ * * Use `optional words` or phrases to define a part of the command as optional.
+ *
+ * #### Examples:
+ * ````html
+ * <script>
+ * var commands = {
+ *   // annyang will capture anything after a splat (*) and pass it to the function.
+ *   // e.g. saying "Show me Batman and Robin" will call showFlickr('Batman and Robin');
+ *   'show me *tag': showFlickr,
+ *
+ *   // A named variable is a one word variable, that can fit anywhere in your command.
+ *   // e.g. saying "calculate October stats" will call calculateStats('October');
+ *   'calculate :month stats': calculateStats,
+ *
+ *   // By defining a part of the following command as optional, annyang will respond
+ *   // to both: "say hello to my little friend" as well as "say hello friend"
+ *   'say hello (to my little) friend': greeting
+ * };
+ *
+ * var showFlickr = function(tag) {
+ *   var url = 'http://api.flickr.com/services/rest/?tags='+tag;
+ *   $.getJSON(url);
+ * }
+ *
+ * var calculateStats = function(month) {
+ *   $('#stats').text('Statistics for '+month);
+ * }
+ *
+ * var greeting = function() {
+ *   $('#greeting').text('Hello!');
+ * }
+ * </script>
+ * ````
+ *
+ * ### Using Regular Expressions in commands
+ * For advanced commands, you can pass a regular expression object, instead of
+ * a simple string command.
+ *
+ * This is done by passing an object containing two properties: `regexp`, and
+ * `callback` instead of the function.
+ *
+ * #### Examples:
+ * ````javascript
+ * var calculateFunction = function(month) { console.log(month); }
+ * var commands = {
+ *   // This example will accept any word as the "month"
+ *   'calculate :month stats': calculateFunction,
+ *   // This example will only accept months which are at the start of a quarter
+ *   'calculate :quarter stats': {'regexp': /^calculate (January|April|July|October) stats$/, 'callback': calculateFunction}
+ * }
+ ````
+ *
+ * ## Languages
+ *
+ * While there isn't an official list of supported languages (cultures? locales?), here is a list based on [anecdotal evidence](http://stackoverflow.com/a/14302134/338039).
+ *
+ * * Afrikaans `af`
+ * * Basque `eu`
+ * * Bulgarian `bg`
+ * * Catalan `ca`
+ * * Arabic (Egypt) `ar-EG`
+ * * Arabic (Jordan) `ar-JO`
+ * * Arabic (Kuwait) `ar-KW`
+ * * Arabic (Lebanon) `ar-LB`
+ * * Arabic (Qatar) `ar-QA`
+ * * Arabic (UAE) `ar-AE`
+ * * Arabic (Morocco) `ar-MA`
+ * * Arabic (Iraq) `ar-IQ`
+ * * Arabic (Algeria) `ar-DZ`
+ * * Arabic (Bahrain) `ar-BH`
+ * * Arabic (Lybia) `ar-LY`
+ * * Arabic (Oman) `ar-OM`
+ * * Arabic (Saudi Arabia) `ar-SA`
+ * * Arabic (Tunisia) `ar-TN`
+ * * Arabic (Yemen) `ar-YE`
+ * * Czech `cs`
+ * * Dutch `nl-NL`
+ * * English (Australia) `en-AU`
+ * * English (Canada) `en-CA`
+ * * English (India) `en-IN`
+ * * English (New Zealand) `en-NZ`
+ * * English (South Africa) `en-ZA`
+ * * English(UK) `en-GB`
+ * * English(US) `en-US`
+ * * Finnish `fi`
+ * * French `fr-FR`
+ * * Galician `gl`
+ * * German `de-DE`
+ * * Hebrew `he`
+ * * Hungarian `hu`
+ * * Icelandic `is`
+ * * Italian `it-IT`
+ * * Indonesian `id`
+ * * Japanese `ja`
+ * * Korean `ko`
+ * * Latin `la`
+ * * Mandarin Chinese `zh-CN`
+ * * Traditional Taiwan `zh-TW`
+ * * Simplified China zh-CN `?`
+ * * Simplified Hong Kong `zh-HK`
+ * * Yue Chinese (Traditional Hong Kong) `zh-yue`
+ * * Malaysian `ms-MY`
+ * * Norwegian `no-NO`
+ * * Polish `pl`
+ * * Pig Latin `xx-piglatin`
+ * * Portuguese `pt-PT`
+ * * Portuguese (Brasil) `pt-BR`
+ * * Romanian `ro-RO`
+ * * Russian `ru`
+ * * Serbian `sr-SP`
+ * * Slovak `sk`
+ * * Spanish (Argentina) `es-AR`
+ * * Spanish (Bolivia) `es-BO`
+ * * Spanish (Chile) `es-CL`
+ * * Spanish (Colombia) `es-CO`
+ * * Spanish (Costa Rica) `es-CR`
+ * * Spanish (Dominican Republic) `es-DO`
+ * * Spanish (Ecuador) `es-EC`
+ * * Spanish (El Salvador) `es-SV`
+ * * Spanish (Guatemala) `es-GT`
+ * * Spanish (Honduras) `es-HN`
+ * * Spanish (Mexico) `es-MX`
+ * * Spanish (Nicaragua) `es-NI`
+ * * Spanish (Panama) `es-PA`
+ * * Spanish (Paraguay) `es-PY`
+ * * Spanish (Peru) `es-PE`
+ * * Spanish (Puerto Rico) `es-PR`
+ * * Spanish (Spain) `es-ES`
+ * * Spanish (US) `es-US`
+ * * Spanish (Uruguay) `es-UY`
+ * * Spanish (Venezuela) `es-VE`
+ * * Swedish `sv-SE`
+ * * Turkish `tr`
+ * * Zulu `zu`
+ *
+ * ## Developing
+ *
+ * Prerequisities: node.js
+ *
+ * First, install dependencies in your local annyang copy:
+ *
+ *     npm install
+ *
+ * Make sure to run the default grunt task after each change to annyang.js. This can also be done automatically by running:
+ *
+ *     grunt watch
+ *
+ * You can also run a local server for testing your work with:
+ *
+ *     grunt dev
+ *
+ * Point your browser to `https://localhost:8443/demo/` to see the demo page.
+ * Since it's using self-signed certificate, you might need to click *"Proceed Anyway"*.
+ *
+ * For more info, check out the [CONTRIBUTING](https://github.com/TalAter/annyang/blob/master/CONTRIBUTING.md) file
+ *
+ */
+
+},{}],2:[function(require,module,exports){
 (function (global){
 //     Backbone.js 1.3.3
 
@@ -1922,7 +2691,7 @@
 });
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"jquery":2,"underscore":3}],2:[function(require,module,exports){
+},{"jquery":3,"underscore":4}],3:[function(require,module,exports){
 /*eslint-disable no-unused-vars*/
 /*!
  * jQuery JavaScript Library v3.1.0
@@ -11998,7 +12767,7 @@ if ( !noGlobal ) {
 return jQuery;
 } );
 
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 //     Underscore.js 1.8.3
 //     http://underscorejs.org
 //     (c) 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -13548,7 +14317,7 @@ return jQuery;
   }
 }.call(this));
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 // The base url
 
 module.exports = {
@@ -13567,7 +14336,7 @@ module.exports = {
 		return 'http://image.tmdb.org/t/p/w' + width + '/' + fileName;
 	}
 }
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 var $ = require('jquery');
 var Backbone = require('backbone');
 
@@ -13586,7 +14355,7 @@ module.exports = Backbone.Router.extend({
         'logout': 'logout',
         'register': 'register',
         'home': 'home',
-        'search/voice/(:titles),(:actors),(:years),(:genres),(:tv)': 'voiceSearch',
+        'search/voice/t-(:titles),a-(:actors),y-(:years),g-(:genres)': 'voiceSearch',
         'search/:query': 'search', // e.g. search/tarzan
         // e.g.
         //  #/search/tarzan,,70,true
@@ -13598,7 +14367,7 @@ module.exports = Backbone.Router.extend({
 
     initialize: function() {
         this.on('route', function() {
-            $('html, body').animate({ scrollTop: 0 });
+            $('body').animate({ scrollTop: 0 });
         });
     },
 
@@ -13639,25 +14408,26 @@ module.exports = Backbone.Router.extend({
         search.search(query);
     },
 
-    voiceSearch: function (title, actors, years, genres, tv) {
+    voiceSearch: function (title, actors, years, genres) {
         auth.check();
-        search.voiceSearch(title, actors, years, genres, tv);
+        search.voiceSearch(title, actors, years, genres);
     }
 });
-},{"../Auth/authController":12,"../Dashboard/dashboardController":14,"../Movie/movieController":19,"../Person/personController":24,"../Search/searchController":28,"../TV/tvController":32,"backbone":1,"jquery":2}],6:[function(require,module,exports){
+},{"../Auth/authController":13,"../Dashboard/dashboardController":15,"../Movie/movieController":20,"../Person/personController":25,"../Search/searchController":31,"../TV/tvController":35,"backbone":2,"jquery":3}],7:[function(require,module,exports){
 var Backbone = require('backbone');
 
 var HeaderView = require('./HeaderView');
 
 module.exports = Backbone.View.extend({
 
-    tagName: 'body',
+    tagName: 'div',
 
     className: 'app',
 
     initialize: function () {
         this.pageViews = [];
         this.headerView = new HeaderView();
+        this.listenTo(Backbone.history, 'route', this.update.bind(this));
     },
 
     render: function () {
@@ -13687,10 +14457,20 @@ module.exports = Backbone.View.extend({
             view.render();
             _this.$('.page-region').append(view.el);
         });
+    },
+
+    update: function () {
+        var route = Backbone.history.getFragment();
+
+        if (route === 'home' || route === '') {
+            this.$('.page-region').addClass('large');
+        } else {
+            this.$('.page-region').removeClass('large');
+        }
     }
 
 });
-},{"./HeaderView":7,"backbone":1}],7:[function(require,module,exports){
+},{"./HeaderView":8,"backbone":2}],8:[function(require,module,exports){
 var Backbone = require('backbone');
 
 var SearchView = require('../Search/SearchView');
@@ -13707,11 +14487,12 @@ var HeaderView = Backbone.View.extend({
 
 	initialize: function () {
 		this.largeMode = true;
-		this.searchView = new SearchView();
 		this.listenTo(Backbone.history, 'route', this.update.bind(this));
 	},
 
 	render: function () {
+		this.searchView = new SearchView();
+
 		if (this.largeMode) {
 			this.$el.html(this.template());
 			this.$el.removeClass('header-small');
@@ -13719,6 +14500,7 @@ var HeaderView = Backbone.View.extend({
 			this.$el.html(this.templateSmall());
 			this.$el.addClass('header-small');
 		}
+		
 		this.searchView.render();
 		this.$('.search-region').append(this.searchView.$el);
 	},
@@ -13728,7 +14510,12 @@ var HeaderView = Backbone.View.extend({
 			<img class="logo-large" src="img/logo-large.png">
 			<h1>Search for film, movies, and TV in style</h1>
 			<div class="search-region"></div>
-			<div class="voice-region"></div>
+			<div class="voice-region">
+				<div class="voice">	
+					<strong class="voice-text">search by voice</strong>
+					<img class="voice-icon" src="img/microphone.png">
+				</div>
+			</div>
 		`;
 	},
 
@@ -13739,7 +14526,12 @@ var HeaderView = Backbone.View.extend({
 					<img class="logo-small" src="img/logo-small.png">
 				</div>
 				<div class="header-right">
-					<div class="voice-region"></div>
+					<div class="voice-region">
+						<div class="voice">	
+							<strong class="voice-text">search by voice</strong>
+							<img class="voice-icon" src="img/microphone.png">
+						</div>
+					</div>
 				</div>
 			</div>
 			<div class="search-region"></div>
@@ -13764,7 +14556,7 @@ var HeaderView = Backbone.View.extend({
 });
 
 module.exports = HeaderView;
-},{"../Search/SearchView":27,"backbone":1}],8:[function(require,module,exports){
+},{"../Search/SearchView":29,"backbone":2}],9:[function(require,module,exports){
 var AppView = require('./AppView');
 
 module.exports = {
@@ -13778,7 +14570,7 @@ module.exports = {
     }
 
 };
-},{"./AppView":6}],9:[function(require,module,exports){
+},{"./AppView":7}],10:[function(require,module,exports){
 var Backbone = require('backbone');
 
 var auth = require('./authController');
@@ -13815,7 +14607,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"./authController":12,"backbone":1}],10:[function(require,module,exports){
+},{"./authController":13,"backbone":2}],11:[function(require,module,exports){
 var Backbone = require('backbone');
 
 var auth = require('./authController');
@@ -13851,7 +14643,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"./authController":12,"backbone":1}],11:[function(require,module,exports){
+},{"./authController":13,"backbone":2}],12:[function(require,module,exports){
 var Backbone = require('backbone');
 
 module.exports = Backbone.Model.extend({
@@ -13871,7 +14663,7 @@ module.exports = Backbone.Model.extend({
     }
 
 });
-},{"backbone":1}],12:[function(require,module,exports){
+},{"backbone":2}],13:[function(require,module,exports){
 var $ = require('jquery');
 var Backbone = require('backbone');
 
@@ -13952,7 +14744,7 @@ module.exports = {
     }
 
 };
-},{"../App/appController":8,"./LoginView":9,"./RegisterView":10,"./UserModel":11,"backbone":1,"jquery":2}],13:[function(require,module,exports){
+},{"../App/appController":9,"./LoginView":10,"./RegisterView":11,"./UserModel":12,"backbone":2,"jquery":3}],14:[function(require,module,exports){
 var Backbone = require('backbone');
 
 var MovieNowPlayingView = require('../Movie/MovieNowPlayingView');
@@ -13987,7 +14779,7 @@ module.exports = Backbone.View.extend({
     }
 });
 
-},{"../Movie/MovieDetailView":15,"../Movie/MovieNowPlayingView":18,"backbone":1}],14:[function(require,module,exports){
+},{"../Movie/MovieDetailView":16,"../Movie/MovieNowPlayingView":19,"backbone":2}],15:[function(require,module,exports){
 var Backbone = require('backbone');
 var DashboardView = require('./DashboardView');
 // var MovieCollection = require('../Movie/MovieCollection');
@@ -14014,7 +14806,7 @@ module.exports = {
     }
 
 };
-},{"../API/api":4,"../App/appController":8,"../Auth/authController":12,"../Movie/movieResources":20,"./DashboardView":13,"backbone":1}],15:[function(require,module,exports){
+},{"../API/api":5,"../App/appController":9,"../Auth/authController":13,"../Movie/movieResources":21,"./DashboardView":14,"backbone":2}],16:[function(require,module,exports){
 var $ = require('jquery');
 var Backbone = require('backbone');
 
@@ -14060,7 +14852,7 @@ var MovieDetailView = Backbone.View.extend({
 module.exports = MovieDetailView;
 
 
-},{"../Person/PersonListView":23,"backbone":1,"jquery":2}],16:[function(require,module,exports){
+},{"../Person/PersonListView":24,"backbone":2,"jquery":3}],17:[function(require,module,exports){
 var Backbone = require('backbone');
 
 var MovieListItemView = Backbone.View.extend({
@@ -14086,7 +14878,7 @@ var MovieListItemView = Backbone.View.extend({
 
 	template: function (data) {
 		return `
-			<img class="movie-poster" src="${data.poster}">
+			<div class="movie-poster" style="background-image: url(${data.poster})"></div>
 		`;
 	},
 
@@ -14097,7 +14889,7 @@ var MovieListItemView = Backbone.View.extend({
 
 module.exports = MovieListItemView;
 
-},{"backbone":1}],17:[function(require,module,exports){
+},{"backbone":2}],18:[function(require,module,exports){
 var Backbone = require('backbone');
 
 var MovieListItemView = require('./MovieListItemView');
@@ -14129,7 +14921,7 @@ var MovieListView = Backbone.View.extend({
 });
 
 module.exports = MovieListView;
-},{"./MovieListItemView":16,"backbone":1}],18:[function(require,module,exports){
+},{"./MovieListItemView":17,"backbone":2}],19:[function(require,module,exports){
 var $ = require('jquery');
 var Backbone = require('backbone');
 
@@ -14163,7 +14955,7 @@ var MovieNowPlayingView = Backbone.View.extend({
 module.exports = MovieNowPlayingView;
 
 
-},{"./MovieListItemView":16,"backbone":1,"jquery":2}],19:[function(require,module,exports){
+},{"./MovieListItemView":17,"backbone":2,"jquery":3}],20:[function(require,module,exports){
 var movieResources = require('./movieResources');
 
 var MovieDetailView = require('./MovieDetailView');
@@ -14187,7 +14979,7 @@ module.exports = {
 	}
 
 };
-},{"../App/appController":8,"./MovieDetailView":15,"./movieResources":20}],20:[function(require,module,exports){
+},{"../App/appController":9,"./MovieDetailView":16,"./movieResources":21}],21:[function(require,module,exports){
 var Backbone = require('backbone');
 
 var api = require('../API/api');
@@ -14211,6 +15003,11 @@ var MovieModel = Backbone.Model.extend({
 
     getMoviePoster: function () {
         var poster = this.get('poster_path');
+
+        if (poster === null) {
+            return 'img/default-poster.png';
+        }
+
         var image = api.imageUrl(poster);
 
         return image;
@@ -14252,7 +15049,13 @@ var PersonModel = Backbone.Model.extend({
 	},
 
 	getProfile: function () {
-		return api.imageUrl(this.get('profile_path'));
+        var profile = this.get('profile_path');
+
+        if (profile === null) {
+            return 'img/default-profile.png';
+        }
+
+		return api.imageUrl(profile);
 	},
 
 	fetch: function (options) {
@@ -14286,6 +15089,11 @@ var TVModel = Backbone.Model.extend({
 
     getMoviePoster: function () {
         var poster = this.get('poster_path');
+
+        if (poster === null) {
+            return 'img/default-poster.png';
+        }
+
         var image = api.imageUrl(poster);
 
         return image;
@@ -14348,7 +15156,7 @@ module.exports = {
     TVModel: TVModel,
     TVCollection: TVCollection
 };
-},{"../API/api":4,"backbone":1}],21:[function(require,module,exports){
+},{"../API/api":5,"backbone":2}],22:[function(require,module,exports){
 var $ = require('jquery');
 var Backbone = require('backbone');
 
@@ -14374,7 +15182,7 @@ var PersonDetailView = Backbone.View.extend({
 	render: function () {
 		this.$el.html(this.template({
 			name: this.model.get('name'),
-			biography: this.model.get('biography'),
+			biography: this.model.get('biography') || 'Not available.',
 			profile: this.model.getProfile(),
 		}));
 		this.movieListView.render();
@@ -14384,20 +15192,29 @@ var PersonDetailView = Backbone.View.extend({
 	},
 
 	template: function (data) {
+		// return `
+		// 	<img class="actor-img"src="${data.profile}">
+		// 	<h2 class="person-detail-name">${data.name}</h2>
+		// 	<p>Biography: ${data.biography}</p>
+		// 	<h2>Movie Credits</h2>
+		// 	<div class="movie-credits-region"></div>
+		// 	<h2>TV Credits</h2>
+		// 	<div class="tv-credits-region"></div>
+		// `;
 		return `
-			<img class="actor-img"src="${data.profile}">
+			<div class="actor-img" style="background-image: url(${data.profile})"></div>
 			<h2 class="person-detail-name">${data.name}</h2>
 			<p>Biography: ${data.biography}</p>
 			<h2>Movie Credits</h2>
 			<div class="movie-credits-region"></div>
 			<h2>TV Credits</h2>
 			<div class="tv-credits-region"></div>
-		`;
+		`
 	}
 });
 
 module.exports = PersonDetailView;
-},{"../Movie/MovieListView":17,"../TV/TVListView":31,"backbone":1,"jquery":2}],22:[function(require,module,exports){
+},{"../Movie/MovieListView":18,"../TV/TVListView":34,"backbone":2,"jquery":3}],23:[function(require,module,exports){
 var Backbone = require('backbone');
 
 var PersonListItemView = Backbone.View.extend({
@@ -14423,7 +15240,7 @@ var PersonListItemView = Backbone.View.extend({
 
 	template: function (data) {
 		return `
-			<img class="person-profile" src="${data.profile}">
+			<div class="person-profile" style="background-image: url(${data.profile})"></div>
 			<div>${data.name}</div>
 		`;
 	},
@@ -14434,7 +15251,7 @@ var PersonListItemView = Backbone.View.extend({
 });
 
 module.exports = PersonListItemView;
-},{"backbone":1}],23:[function(require,module,exports){
+},{"backbone":2}],24:[function(require,module,exports){
 var Backbone = require('backbone');
 
 var PersonListItemView = require('./PersonListItemView');
@@ -14466,7 +15283,7 @@ var PersonListView = Backbone.View.extend({
 });
 
 module.exports = PersonListView;
-},{"./PersonListItemView":22,"backbone":1}],24:[function(require,module,exports){
+},{"./PersonListItemView":23,"backbone":2}],25:[function(require,module,exports){
 var app = require('../App/appController');
 
 var movieResources = require('../Movie/movieResources');
@@ -14489,7 +15306,19 @@ module.exports = {
 		});
 	}
 };
-},{"../App/appController":8,"../Movie/movieResources":20,"./PersonDetailView":21}],25:[function(require,module,exports){
+},{"../App/appController":9,"../Movie/movieResources":21,"./PersonDetailView":22}],26:[function(require,module,exports){
+var SearchCollection = require('./SearchCollection');
+
+var api = require('../API/api');
+
+var DiscoverCollection = SearchCollection.extend({
+	url: function () {
+		return api.url('discover/' + this.category);
+	}
+});
+
+module.exports = DiscoverCollection;
+},{"../API/api":5,"./SearchCollection":27}],27:[function(require,module,exports){
 var Backbone = require('backbone');
 
 var api = require('../API/api');
@@ -14518,7 +15347,7 @@ var SearchCollection = Backbone.Collection.extend({
 });
 
 module.exports = SearchCollection;
-},{"../API/api":4,"backbone":1}],26:[function(require,module,exports){
+},{"../API/api":5,"backbone":2}],28:[function(require,module,exports){
 var Backbone = require('backbone');
 
 var SearchResultsView = Backbone.View.extend({
@@ -14535,11 +15364,14 @@ var SearchResultsView = Backbone.View.extend({
 		this.listView = new this.listViewConstructor({
 			collection: this.collection
 		});
+
+		this.listenTo(this.collection, 'update', this.render.bind(this));
 	},
 
 	render: function () {
 		var data = {
-			title: this.title
+			title: this.title,
+			count: this.collection.length
 		};
 		this.$el.html(this.template(data));
 		this.listView.render();
@@ -14548,7 +15380,7 @@ var SearchResultsView = Backbone.View.extend({
 
 	template: function (data) {
 		return `
-			<h3>${data.title}</h3>
+			<h3>${data.title} (${data.count})</h3>
 			<div class="list-region"></div>
 		`;
 	}
@@ -14556,18 +15388,28 @@ var SearchResultsView = Backbone.View.extend({
 });
 
 module.exports = SearchResultsView;
-},{"backbone":1}],27:[function(require,module,exports){
+},{"backbone":2}],29:[function(require,module,exports){
 // Search View should include an input where
 // user types in and searches for movies
 
 var Backbone = require('backbone');
+
+var annyang = require('annyang');
+
+var commands = require('./commands');
 
 module.exports = Backbone.View.extend({
 
 	className: 'search',
 
 	events: {
-		'click .search-box': 'handleSearchClick',
+		'click .search-icon': 'handleSearchClick',
+	},
+
+	initialize: function () {
+		annyang.addCommands(commands);
+		annyang.start();
+		annyang.debug();
 	},
 
 	render: function () {
@@ -14612,10 +15454,61 @@ module.exports = Backbone.View.extend({
 
 
 
-},{"backbone":1}],28:[function(require,module,exports){
+},{"./commands":30,"annyang":1,"backbone":2}],30:[function(require,module,exports){
+var Backbone = require('backbone');
+
+// (:titles),(:actors),(:years),(:genres)
+
+function getDiscoverRoute (title, actor, year, genre) {
+	title = title || '';
+	actor = actor || '';
+	year = year || '';
+	genre = genre || '';
+	return `search/voice/t-${title},a-${actor},y-${year},g-${genre}`;
+}
+
+module.exports = {
+
+	':genre movies in :year': function (genre, year) {
+		Backbone.history.navigate(
+			getDiscoverRoute(null, null, year, genre),
+			{ trigger: true }
+		);
+	},
+
+	':first :last in :year': function (first, last, year) {
+		var actor = first + ' ' + last;
+		Backbone.history.navigate(
+			getDiscoverRoute(null, actor, year, null),
+			{ trigger: true }
+		);
+	},
+
+	':genre movies with :first :last in :year': function (genre, first, last, year) {
+		var actor = first + ' ' + last;
+		Backbone.history.navigate(
+			getDiscoverRoute(null, actor, year, genre),
+			{ trigger: true }
+		);
+	},
+
+	':genre movies called with :first :last in :year': function (genre, title, first, last, year) {
+		var actor = first + ' ' + last;
+		Backbone.history.navigate(
+			getDiscoverRoute(null, actor, year, genre),
+			{ trigger: true }
+		);
+	}
+
+};
+},{"backbone":2}],31:[function(require,module,exports){
+var $ = require('jquery');
+
+var api = require('../API/api');
 var app = require('../App/appController');
 
 var SearchCollection = require('./SearchCollection');
+var DiscoverCollection = require('./DiscoverCollection');
 var movieResources = require('../Movie/movieResources');
 
 var MovieModel = movieResources.MovieModel;
@@ -14687,50 +15580,91 @@ module.exports = {
 		);
 	},
 
-	voiceSearch: function (title, actor, year, genre, tv) {
+	voiceSearch: function (title, actor, year, genre) {
 		var criteriaCount = 0;
 		var finishedRequests = 0;
+
+		console.log(title, actor, year, genre);
+
+		var movieResults = new DiscoverCollection([], {
+			model: MovieModel,
+			category: 'movie'
+		});
+
+		var movieSearchResultsView = new SearchResultsView({
+			collection: movieResults,
+			title: 'Movies',
+			listView: MovieListView
+		});
+
+		var actorId;
+		var movieId;
+		var genreId;
 
 		function done () {
 			finishedRequests++;
 			if (criteriaCount === finishedRequests) {
-				// Do the /discovery request with the IDs
-				// once all of the initial requests have
-				// finished.
+				movieResults.fetch({
+					data: {
+						with_cast: actorId,
+						with_genres: genreId,
+						year: year
+					}
+				});
 			}
 		}
 
 		if (title) {
 			criteriaCount++;
-			if (tv) {
-				// Make a request to get tv id
-			} else {
-				// Make a request to get movie id
-			}
+			$.ajax({
+				url: api.url('search/movie'),
+				data: {
+					query: title
+				},
+				success: function (response) {
+					movieId = response.results[0].id;
+					done();
+				}
+			});
 		}
 
 		if (actor) {
 			criteriaCount++;
+			$.ajax({
+				url: api.url('search/person'),
+				data: {
+					query: actor
+				},
+				success: function (response) {
+					actorId = response.results[0].id;
+					done();
+				}
+			});
 			// Make a request to get actor id
 		}
 
 		if (genre) {
 			criteriaCount++;
+			$.ajax({
+				url: api.url('genre/movie/list'),
+				data: {
+					query: actor
+				},
+				success: function (response) {
+					var genreObj = response.genres.find(function (obj) {
+						return obj.name.toLowerCase() === genre.toLowerCase();
+					});
+					genreId = genreObj.id;
+					done();
+				}
+			});
 			// Make a request to get genre id
 		}
 
-		if (year) {
-
-		}
-
-		console.log('Title: ' + title);
-		console.log('Actors: ' + actor);
-		console.log('Years: ' + year);
-		console.log('Genres: ' + genre);
-		console.log('TV: ' + tv);
+		app.showPage(movieSearchResultsView);
 	}
 };
-},{"../App/appController":8,"../Movie/MovieListView":17,"../Movie/movieResources":20,"../Person/PersonListView":23,"../TV/TVListView":31,"./SearchCollection":25,"./SearchResultsView":26}],29:[function(require,module,exports){
+},{"../API/api":5,"../App/appController":9,"../Movie/MovieListView":18,"../Movie/movieResources":21,"../Person/PersonListView":24,"../TV/TVListView":34,"./DiscoverCollection":26,"./SearchCollection":27,"./SearchResultsView":28,"jquery":3}],32:[function(require,module,exports){
 var $ = require('jquery');
 var Backbone = require('backbone');
 
@@ -14774,7 +15708,7 @@ var TVDetailView = Backbone.View.extend({
 });
 
 module.exports = TVDetailView;
-},{"../Person/PersonListView":23,"backbone":1,"jquery":2}],30:[function(require,module,exports){
+},{"../Person/PersonListView":24,"backbone":2,"jquery":3}],33:[function(require,module,exports){
 var Backbone = require('backbone');
 
 var TVListItemView = Backbone.View.extend({
@@ -14800,7 +15734,7 @@ var TVListItemView = Backbone.View.extend({
 
 	template: function (data) {
 		return `
-			<img class="tv-poster" src="${data.poster}">
+			<div class="tv-poster" style="background-image: url(${data.poster})"></div>
 		`;
 	},
 
@@ -14811,7 +15745,7 @@ var TVListItemView = Backbone.View.extend({
 
 module.exports = TVListItemView;
 
-},{"backbone":1}],31:[function(require,module,exports){
+},{"backbone":2}],34:[function(require,module,exports){
 var Backbone = require('backbone');
 
 var TVListItemView = require('./TVListItemView');
@@ -14843,7 +15777,7 @@ var TVListView = Backbone.View.extend({
 });
 
 module.exports = TVListView;
-},{"./TVListItemView":30,"backbone":1}],32:[function(require,module,exports){
+},{"./TVListItemView":33,"backbone":2}],35:[function(require,module,exports){
 var app = require('../App/appController');
 
 var movieResources = require('../Movie/movieResources');
@@ -14867,7 +15801,7 @@ module.exports = {
 	}
 
 };
-},{"../App/appController":8,"../Movie/movieResources":20,"./TVDetailView":29}],33:[function(require,module,exports){
+},{"../App/appController":9,"../Movie/movieResources":21,"./TVDetailView":32}],36:[function(require,module,exports){
 var $ = require('jquery');
 var Backbone = require('backbone');
 
@@ -14881,4 +15815,4 @@ app.appView.render();
 $(document.body).append(app.appView.$el);
 
 Backbone.history.start();
-},{"./components/App/AppRouter":5,"./components/App/appController":8,"backbone":1,"jquery":2}]},{},[33]);
+},{"./components/App/AppRouter":6,"./components/App/appController":9,"backbone":2,"jquery":3}]},{},[36]);

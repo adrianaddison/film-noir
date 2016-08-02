@@ -4,13 +4,14 @@ var HeaderView = require('./HeaderView');
 
 module.exports = Backbone.View.extend({
 
-    tagName: 'body',
+    tagName: 'div',
 
     className: 'app',
 
     initialize: function () {
         this.pageViews = [];
         this.headerView = new HeaderView();
+        this.listenTo(Backbone.history, 'route', this.update.bind(this));
     },
 
     render: function () {
@@ -40,6 +41,16 @@ module.exports = Backbone.View.extend({
             view.render();
             _this.$('.page-region').append(view.el);
         });
+    },
+
+    update: function () {
+        var route = Backbone.history.getFragment();
+
+        if (route === 'home' || route === '') {
+            this.$('.page-region').addClass('large');
+        } else {
+            this.$('.page-region').removeClass('large');
+        }
     }
 
 });

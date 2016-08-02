@@ -31,3 +31,9 @@
 	padding: 6px;
 	width: 100%;
 }
+
+
+input.search-box:focus {
+	border: none;
+	color: $color-grey;
+}

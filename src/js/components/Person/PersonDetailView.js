@@ -23,7 +23,7 @@ var PersonDetailView = Backbone.View.extend({
 	render: function () {
 		this.$el.html(this.template({
 			name: this.model.get('name'),
-			biography: this.model.get('biography'),
+			biography: this.model.get('biography') || 'Not available.',
 			profile: this.model.getProfile(),
 		}));
 		this.movieListView.render();
@@ -33,15 +33,24 @@ var PersonDetailView = Backbone.View.extend({
 	},
 
 	template: function (data) {
+		// return `
+		// 	<img class="actor-img"src="${data.profile}">
+		// 	<h2 class="person-detail-name">${data.name}</h2>
+		// 	<p>Biography: ${data.biography}</p>
+		// 	<h2>Movie Credits</h2>
+		// 	<div class="movie-credits-region"></div>
+		// 	<h2>TV Credits</h2>
+		// 	<div class="tv-credits-region"></div>
+		// `;
 		return `
-			<img class="actor-img"src="${data.profile}">
+			<div class="actor-img" style="background-image: url(${data.profile})"></div>
 			<h2 class="person-detail-name">${data.name}</h2>
 			<p>Biography: ${data.biography}</p>
 			<h2>Movie Credits</h2>
 			<div class="movie-credits-region"></div>
 			<h2>TV Credits</h2>
 			<div class="tv-credits-region"></div>
-		`;
+		`
 	}
 });
 

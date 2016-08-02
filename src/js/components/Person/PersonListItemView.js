@@ -23,7 +23,7 @@ var PersonListItemView = Backbone.View.extend({
 
 	template: function (data) {
 		return `
-			<img class="person-profile" src="${data.profile}">
+			<div class="person-profile" style="background-image: url(${data.profile})"></div>
 			<div>${data.name}</div>
 		`;
 	},

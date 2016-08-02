@@ -379,7 +379,7 @@ textarea {
   padding: 0 1.25em; }
 
 .header {
-  height: 410px;
+  height: 380px;
   text-align: center; }
 
 .header-small {
@@ -418,14 +418,16 @@ textarea {
 
 .logo-small {
   height: 40px; }
+  .logo-small:hover {
+    opacity: 0.5; }
 
 .page-region {
-  padding: 368px 1em 0 1em;
-  height: 100vh;
-  overflow-y: auto; }
+  padding: 180px 1em 0 1em;
+  overflow-y: auto;
+  transition: padding 200ms ease; }
 
-.main-small {
-  padding-top: 160px; }
+.page-region.large {
+  padding-top: 340px; }
 
 .search {
   width: 100%;
@@ -455,6 +457,10 @@ textarea {
   height: 50px;
   padding: 6px;
   width: 100%; }
+
+input.search-box:focus {
+  border: none;
+  color: #C0C0C0; }
 
 .voice {
   text-align: right;
@@ -507,8 +513,7 @@ textarea {
 .person-item {
   padding-bottom: 5px; }
   .person-item > div {
-    text-align: center;
-    padding-top: 10px; }
+    text-align: center; }
 
 .person-list {
   padding: 0;
@@ -521,14 +526,22 @@ textarea {
 
 .person-item {
   display: inline-block;
+  vertical-align: top;
   width: 50%;
   padding: 5%; }
 
 .person-profile {
-  width: 100%; }
+  background-size: cover;
+  padding-top: 130%;
+  width: 100%;
+  margin-bottom: 1em; }
 
 .actor-img {
-  height: 300px; }
+  border: solid 4px #C0C0C0;
+  box-shadow: 0 5px 5px rgba(0, 0, 0, 0.5);
+  background-size: cover;
+  padding-top: 110%;
+  width: 100%; }
 
 .movie-list {
   padding: 0;
@@ -545,6 +558,13 @@ textarea {
   padding: 5%; }
 
 .movie-poster {
+  background-size: cover;
+  width: 100%; }
+
+.movie-item .movie-poster {
+  background-size: cover;
+  background-position: center;
+  padding-top: 150%;
   width: 100%; }
 
 .credit-list {
@@ -562,6 +582,9 @@ textarea {
   padding: 5%; }
 
 .tv-poster {
+  background-size: cover;
+  background-position: center;
+  padding-top: 150%;
   width: 100%; }
 
 @font-face {
@@ -577,9 +600,9 @@ body {
   color: #D3D3D3; }
 
 h3 {
-  padding-left: 10%;
   font-size: 22px;
-  font-family: "Noto Sans"; }
+  font-family: 'Noto Sans';
+  margin-bottom: 6px; }
 
 h2 {
   font-size: 19px;
@@ -588,5 +611,9 @@ h2 {
 
 ul {
   list-style-type: none; }
+
+p {
+  line-height: 1.4;
+  font-family: 'Noto Sans'; }
 
 /*# sourceMappingURL=main.css.map */

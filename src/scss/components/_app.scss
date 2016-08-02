@@ -1,9 +1,9 @@
 .page-region {
-	padding: 368px 1em 0 1em;
-	height: 100vh;
+	padding: 180px 1em 0 1em;
 	overflow-y: auto;
+	transition: padding 200ms ease;
 }
 
-.main-small {
-	padding-top: 160px;
+.page-region.large {
+	padding-top: 340px;
 }

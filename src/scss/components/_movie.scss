@@ -16,5 +16,17 @@
 }
 
 .movie-poster {
+	background-size: cover;
 	width: 100%;
 }
+
+// .now-playing  {
+	.movie-item {
+		.movie-poster {
+			background-size: cover;
+			background-position: center;
+			padding-top: 150%;
+			width: 100%;
+		}
+	}
+// }

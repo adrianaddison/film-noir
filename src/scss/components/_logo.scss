@@ -9,4 +9,7 @@
 
 .logo-small {
 	height: 40px;
+	 &:hover {
+        opacity: 0.5;
+    }
 }

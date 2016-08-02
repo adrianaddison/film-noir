@@ -14,11 +14,14 @@ var SearchResultsView = Backbone.View.extend({
 		this.listView = new this.listViewConstructor({
 			collection: this.collection
 		});
+
+		this.listenTo(this.collection, 'update', this.render.bind(this));
 	},
 
 	render: function () {
 		var data = {
-			title: this.title
+			title: this.title,
+			count: this.collection.length
 		};
 		this.$el.html(this.template(data));
 		this.listView.render();
@@ -27,7 +30,7 @@ var SearchResultsView = Backbone.View.extend({
 
 	template: function (data) {
 		return `
-			<h3>${data.title}</h3>
+			<h3>${data.title} (${data.count})</h3>
 			<div class="list-region"></div>
 		`;
 	}

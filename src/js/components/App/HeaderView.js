@@ -14,11 +14,12 @@ var HeaderView = Backbone.View.extend({
 
 	initialize: function () {
 		this.largeMode = true;
-		this.searchView = new SearchView();
 		this.listenTo(Backbone.history, 'route', this.update.bind(this));
 	},
 
 	render: function () {
+		this.searchView = new SearchView();
+
 		if (this.largeMode) {
 			this.$el.html(this.template());
 			this.$el.removeClass('header-small');
@@ -26,6 +27,7 @@ var HeaderView = Backbone.View.extend({
 			this.$el.html(this.templateSmall());
 			this.$el.addClass('header-small');
 		}
+		
 		this.searchView.render();
 		this.$('.search-region').append(this.searchView.$el);
 	},
@@ -35,7 +37,12 @@ var HeaderView = Backbone.View.extend({
 			<img class="logo-large" src="img/logo-large.png">
 			<h1>Search for film, movies, and TV in style</h1>
 			<div class="search-region"></div>
-			<div class="voice-region"></div>
+			<div class="voice-region">
+				<div class="voice">	
+					<strong class="voice-text">search by voice</strong>
+					<img class="voice-icon" src="img/microphone.png">
+				</div>
+			</div>
 		`;
 	},
 
@@ -46,7 +53,12 @@ var HeaderView = Backbone.View.extend({
 					<img class="logo-small" src="img/logo-small.png">
 				</div>
 				<div class="header-right">
-					<div class="voice-region"></div>
+					<div class="voice-region">
+						<div class="voice">	
+							<strong class="voice-text">search by voice</strong>
+							<img class="voice-icon" src="img/microphone.png">
+						</div>
+					</div>
 				</div>
 			</div>
 			<div class="search-region"></div>
