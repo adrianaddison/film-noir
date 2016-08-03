@@ -12,7 +12,7 @@ SpeechKITT.annyang(annyang);
 annyang.addCommands(commands);
 annyang.debug();
 
-SpeechKITT.setStylesheet('//cdnjs.cloudflare.com/ajax/libs/SpeechKITT/0.3.0/themes/flat.css');
+SpeechKITT.setStylesheet('//cdnjs.cloudflare.com/ajax/libs/SpeechKITT/0.3.0/themes/flat-concrete.css');
 
 SpeechKITT.setInstructionsText('Example command...');
 SpeechKITT.setSampleCommands(['Brad Pitt in 2010']);
