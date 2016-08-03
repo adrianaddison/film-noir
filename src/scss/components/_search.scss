@@ -10,6 +10,7 @@
 .search-box {
 	position: absolute;
 	top: 0;
+	border: none;
 }
 
 .search-box {
@@ -34,6 +35,6 @@
 
 
 input.search-box:focus {
-	border: none;
-	color: $color-grey;
+  outline-color: $color-grey;
 }
+
