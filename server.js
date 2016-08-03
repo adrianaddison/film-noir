@@ -52,6 +52,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.use(express.static(__dirname + '/public'));
+app.use(express.static(__dirname + '/lib'));
 app.use(express.static(__dirname + '/build'));
 
 // API endpoints are authenticated with this function. If the client recieves

@@ -37,12 +37,6 @@ var HeaderView = Backbone.View.extend({
 			<img class="logo-large" src="img/logo-large.png">
 			<h1>Search for film, movies, and TV in style</h1>
 			<div class="search-region"></div>
-			<div class="voice-region">
-				<div class="voice">	
-					<strong class="voice-text">search by voice</strong>
-					<img class="voice-icon" src="img/microphone.png">
-				</div>
-			</div>
 		`;
 	},
 
@@ -52,14 +46,7 @@ var HeaderView = Backbone.View.extend({
 				<div class="header-left">
 					<img class="logo-small" src="img/logo-small.png">
 				</div>
-				<div class="header-right">
-					<div class="voice-region">
-						<div class="voice">	
-							<strong class="voice-text">search by voice</strong>
-							<img class="voice-icon" src="img/microphone.png">
-						</div>
-					</div>
-				</div>
+				<div class="header-right"></div>
 			</div>
 			<div class="search-region"></div>
 		`;

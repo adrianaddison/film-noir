@@ -4,6 +4,10 @@ var SearchResultsView = Backbone.View.extend({
 
 	className: 'search-results',
 
+	events: {
+		'click .back': 'onBackClick'
+	},
+
 	initialize: function (options) {
 		// Get the title from the options
 		this.title = options.title;
@@ -15,7 +19,7 @@ var SearchResultsView = Backbone.View.extend({
 			collection: this.collection
 		});
 
-		this.listenTo(this.collection, 'update', this.render.bind(this));
+		this.listenTo(this.collection, 'update', this.renderCount.bind(this));
 	},
 
 	render: function () {
@@ -28,13 +32,21 @@ var SearchResultsView = Backbone.View.extend({
 		this.$('.list-region').append(this.listView.$el);
 	},
 
+	renderCount: function () {
+		this.$('.count').text(`(${this.collection.length})`);
+	},
+
 	template: function (data) {
 		return `
-			<h3>${data.title} (${data.count})</h3>
+			<div class="back" style="background-image: url(img/back-icon.png)"></div>
+			<h3>${data.title} <span class="count"></span></h3>
 			<div class="list-region"></div>
 		`;
-	}
+	},
 
+	onBackClick: function () {
+		window.history.back();
+	}
 });
 
 module.exports = SearchResultsView;

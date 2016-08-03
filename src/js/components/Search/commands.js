@@ -35,12 +35,20 @@ module.exports = {
 		);
 	},
 
-	':genre movies called with :first :last in :year': function (genre, title, first, last, year) {
+	':genre movies with :first :last': function (genre, first, last) {
 		var actor = first + ' ' + last;
 		Backbone.history.navigate(
-			getDiscoverRoute(null, actor, year, genre),
+			getDiscoverRoute(null, actor, null, null),
 			{ trigger: true }
 		);
-	}
+	},
+
+	'movies with :first :last': function (first, last) {
+		var actor = first + ' ' + last;
+		Backbone.history.navigate(
+			getDiscoverRoute(null, actor, null, null),
+			{ trigger: true }
+		);
+	},
 
 };

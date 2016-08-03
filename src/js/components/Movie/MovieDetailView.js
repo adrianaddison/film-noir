@@ -7,6 +7,10 @@ var MovieDetailView = Backbone.View.extend({
 	
 	className: 'movie-detail',
 
+	events: {
+		'click .back': 'onBackClick'
+	},
+
 	initialize: function (options) {
 		this.personListView = new PersonListView({
 			collection: this.model.credits
@@ -29,6 +33,7 @@ var MovieDetailView = Backbone.View.extend({
 
 	template: function (data) {
 		return `
+			<div class="back" style="background-image: url(img/back-icon.png)"></div>
 			<img class="movie-poster" src="${data.poster}">
 			<p>Overview: ${data.overview}</p>
 			<span>Release Date: ${data.release_date}</span>
@@ -36,8 +41,12 @@ var MovieDetailView = Backbone.View.extend({
 				<h2>Cast</2>
 			</div>
 		`;
-	}
+	},
 
+	onBackClick: function () {
+		// Backbone.history.navigate('', { trigger: true });
+		window.history.back();
+	}
 });
 
 module.exports = MovieDetailView;
