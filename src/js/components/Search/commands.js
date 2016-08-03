@@ -38,7 +38,7 @@ module.exports = {
 	':genre movies with :first :last': function (genre, first, last) {
 		var actor = first + ' ' + last;
 		Backbone.history.navigate(
-			getDiscoverRoute(null, actor, null, null),
+			getDiscoverRoute(null, actor, null, genre),
 			{ trigger: true }
 		);
 	},
