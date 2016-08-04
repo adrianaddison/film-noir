@@ -38,7 +38,7 @@ var SearchResultsView = Backbone.View.extend({
 
 	template: function (data) {
 		return `
-			<div class="back" style="background-image: url(img/back-icon.png)"></div>
+			<div class="back" style="background-image: url(img/back-button.png)"></div>
 			<h3>${data.title} <span class="count"></span></h3>
 			<div class="list-region"></div>
 		`;

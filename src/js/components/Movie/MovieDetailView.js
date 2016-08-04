@@ -33,7 +33,7 @@ var MovieDetailView = Backbone.View.extend({
 
 	template: function (data) {
 		return `
-			<div class="back" style="background-image: url(img/back-icon.png)"></div>
+			<div class="back" style="background-image: url(img/back-button.png)"></div>
 			<img class="movie-poster" src="${data.poster}">
 			<p>Overview: ${data.overview}</p>
 			<span>Release Date: ${data.release_date}</span>
