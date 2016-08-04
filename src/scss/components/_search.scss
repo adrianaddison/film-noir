@@ -1,12 +1,17 @@
 .back {
-	background-size: contain;
+	background-image: url(img/back-button.png);
+	background-size: 50%;
     background-repeat: no-repeat;
+    background-position: 13px center;
     position: fixed;
     bottom: 20px;
+    left: 20px;
     transition: .5s ease;
-    opacity: .5;
-    width: 50px;
-    height: 50px;
+    width: 60px;
+    height: 60px;
+    border-radius: 62.5px;
+    background-color: #95A5A6;
+    box-shadow: rgba(0,0,0,0.5) 0px 5px 5px;
 }
 
 .search {

@@ -21,16 +21,15 @@
 	box-shadow: 0 5px 5px rgba(0, 0, 0, 0.5);
 }
 
-// .now-playing  {
-	.movie-item {
-		.movie-poster {
-			background-size: cover;
-			background-position: center;
-			padding-top: 150%;
-			width: 100%;
-		}
+
+.movie-item {
+	.movie-poster {
+		background-size: cover;
+		background-position: center;
+		padding-top: 150%;
+		width: 100%;
 	}
-// }
+}
 
 .movie-detail {
 	.movie-poster {
@@ -38,4 +37,9 @@
 		display: block;
 		margin: 0 auto;
 	}
+}
+
+span {
+	color: $color-grey;
+	font-size: 1em;
 }

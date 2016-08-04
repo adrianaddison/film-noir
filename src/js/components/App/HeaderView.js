@@ -35,7 +35,7 @@ var HeaderView = Backbone.View.extend({
 	template: function () {
 		return `
 			<img class="logo-large" src="img/logo-large.png">
-			<h1>Search for film, movies, and TV in style</h1>
+			<h1>Discover your favorite actors, movies, and TV shows</h1>
 			<div class="search-region"></div>
 		`;
 	},

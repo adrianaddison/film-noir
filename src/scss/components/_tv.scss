@@ -20,4 +20,13 @@
 	background-position: center;
 	padding-top: 150%;
 	width: 100%;
+	box-shadow: 0 5px 5px rgba(0,0,0,0.5);
+}
+
+.tv-detail {
+	.movie-poster {
+		width: 90%;
+		display: block;
+		margin: 0 auto;
+	}
 }
