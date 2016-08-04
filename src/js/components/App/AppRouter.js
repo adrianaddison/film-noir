@@ -45,32 +45,32 @@ module.exports = Backbone.Router.extend({
     },
 
     home: function () {
-        auth.check();
+        // auth.check();
         dashboard.showDashboard();
     },
 
     movieDetails: function (id) {
-        auth.check();
+        // auth.check();
         movie.showMovieDetails(id);
     },
 
     personDetails: function (id) {
-        auth.check();
+        // auth.check();
         person.showPersonDetails(id);
     },
 
     tvDetails: function (id) {
-        auth.check();
+        // auth.check();
         tv.showTVDetails(id);
     },
 
     search: function (query) {
-        auth.check();
+        // auth.check();
         search.search(query);
     },
 
     voiceSearch: function (title, actors, years, genres) {
-        auth.check();
+        // auth.check();
         search.voiceSearch(title, actors, years, genres);
     }
 });

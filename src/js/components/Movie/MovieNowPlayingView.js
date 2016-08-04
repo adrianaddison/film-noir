@@ -14,13 +14,19 @@ var MovieNowPlayingView = Backbone.View.extend({
 	render: function () {
 		var _this = this;
 
-		var views = this.collection.map(function (model) {
+		if (this.childViews) {
+			this.childViews.forEach(function (view) {
+				view.remove();
+			});
+		}
+
+		this.childViews = this.collection.map(function (model) {
 			return new MovieListItemView({
 				model: model
 			});
 		});
 
-		views.forEach(function (view) {
+		this.childViews.forEach(function (view) {
 			view.render();
 			_this.$el.append(view.$el);
 		});

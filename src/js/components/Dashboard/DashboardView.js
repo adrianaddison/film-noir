@@ -14,13 +14,13 @@ module.exports = Backbone.View.extend({
             collection: this.movieNowPlaying
         });
 
+        this.movieNowPlayingView.render();
+
         this.user = options.user;
-        this.listenTo(this.user, 'change', this.render);
     },
 
     render: function () {
         this.$el.html(this.template(this.user.toJSON()));
-        this.movieNowPlayingView.render();
         this.$('.now-playing-region').append(this.movieNowPlayingView.$el);
     },
 
