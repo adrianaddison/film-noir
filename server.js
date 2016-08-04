@@ -129,4 +129,4 @@ app.get('/users/:id', auth, function (req, res) {
     res.json(user);
 });
 
-app.listen(8000);
+app.listen(process.env.PORT || 8000);
