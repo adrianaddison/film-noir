@@ -13745,6 +13745,8 @@ module.exports = {
     TVCollection: TVCollection
 };
 },{"../API/api":4,"backbone":1}],6:[function(require,module,exports){
+var api = require('../../../src/js/components/API/api');
+
 var MovieModel = require('../../../src/js/components/Movie/movieResources/').MovieModel;
 
 // describe() describes a suite of test acases (aka unit test)
@@ -13759,12 +13761,15 @@ describe('MovieModel', function () {
 		this.model = null;
 	});
 
-	it ('the value of the `urlRoot` property is api.url(`movie`)', function () {
+	it ('The value of the `urlRoot` property is api.url(`movie`).', function () {
 		expect(this.model.urlRoot).to.equal(api.url('movie'));
 	});
+
 });
-},{"../../../src/js/components/Movie/movieResources/":5}],7:[function(require,module,exports){
-var MovieModel = require('../../../src/js/components/Movie/movieResources/').PersonModel;
+},{"../../../src/js/components/API/api":4,"../../../src/js/components/Movie/movieResources/":5}],7:[function(require,module,exports){
+var api = require('../../../src/js/components/API/api');
+
+var PersonModel = require('../../../src/js/components/Movie/movieResources/').PersonModel;
 
 // describe() describes a suite of test acases (aka unit test)
 describe('PersonModel', function () {
@@ -13778,12 +13783,18 @@ describe('PersonModel', function () {
 		this.model = null;
 	});
 
+	it ('The value of the `urlRoot` property is api.url(`person`).', function () {
+		expect(this.model.urlRoot).to.equal(api.url('person'));
+	});
+
 });
-},{"../../../src/js/components/Movie/movieResources/":5}],8:[function(require,module,exports){
-var MovieModel = require('../../../src/js/components/Movie/movieResources/').TVModel;
+},{"../../../src/js/components/API/api":4,"../../../src/js/components/Movie/movieResources/":5}],8:[function(require,module,exports){
+var api = require('../../../src/js/components/API/api');
+
+var TVModel = require('../../../src/js/components/Movie/movieResources/').TVModel;
 
 // describe() describes a suite of test acases (aka unit test)
-describe('TVModel', function () {
+describe('PersonModel', function () {
 
 	// ensure each test case uses a new model
 	beforeEach(function () {
@@ -13793,8 +13804,13 @@ describe('TVModel', function () {
 	afterEach(function () {
 		this.model = null;
 	});
+
+	it ('The value of the `urlRoot` property is api.url(`tv`).', function () {
+		expect(this.model.urlRoot).to.equal(api.url('tv'));
+	});
+
 });
-},{"../../../src/js/components/Movie/movieResources/":5}],9:[function(require,module,exports){
+},{"../../../src/js/components/API/api":4,"../../../src/js/components/Movie/movieResources/":5}],9:[function(require,module,exports){
 // Use the expect version of chai assertions - http://chaijs.com/api/bdd
 window.expect = chai.expect;
 

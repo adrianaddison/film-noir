@@ -1,3 +1,32 @@
+#username,
+#password {
+	background-color: #7F8C8D;
+	width: 50%;
+	float: left;
+	margin-bottom: 1em;
+	clear: both;
+}
+
 .login {
-	
+	font-family: 'Noto Sans';
+	clear: both;
+}
+
+label {
+	color: white;
+	padding-bottom: .5em;
+	float: left;
+	clear: both;
+}
+
+.login-button {
+	background-color: #7F8C8D;
+	color: white;
+	float: right;
+}
+
+a {
+	color: white;
+	float: right;
+	clear: both;
 }

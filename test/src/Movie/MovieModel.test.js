@@ -1,3 +1,5 @@
+var api = require('../../../src/js/components/API/api');
+
 var MovieModel = require('../../../src/js/components/Movie/movieResources/').MovieModel;
 
 // describe() describes a suite of test acases (aka unit test)
@@ -12,7 +14,8 @@ describe('MovieModel', function () {
 		this.model = null;
 	});
 
-	it ('the value of the `urlRoot` property is api.url(`movie`)', function () {
+	it ('The value of the `urlRoot` property is api.url(`movie`).', function () {
 		expect(this.model.urlRoot).to.equal(api.url('movie'));
 	});
+
 });
